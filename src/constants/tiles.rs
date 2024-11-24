@@ -1,8 +1,12 @@
 #[derive(Clone, Copy, Debug)]
 pub enum TileType {
-    GrassBasic = 0,    // Basic grass
-    GrassFlowers1 = 1, // Grass with sparse flowers
-    GrassFlowers2 = 2, // Grass with dense flowers
+    Grass1 = 0,
+    Grass2 = 1,
+    Grass3 = 2,
+
+    Dirt1 = 32,
+    Dirt2 = 33,
+    Dirt3 = 34,
 }
 
 impl TileType {

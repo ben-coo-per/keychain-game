@@ -10,11 +10,21 @@ pub struct Tile {
 /// Maps Perlin noise values to grass-related TileTypes.
 fn map_noise_to_tile_type(noise_value: f64) -> TileType {
     if noise_value < -0.2 {
-        TileType::GrassFlowers1
+        // 80% of the time return grass1, 10% grass2, 10% grass3
+        match rand::random::<u8>() % 10 {
+            0..=7 => TileType::Grass1,
+            8 => TileType::Grass2,
+            _ => TileType::Grass3,
+        }
     } else if noise_value < 0.2 {
-        TileType::GrassFlowers2
+        // 90% of the time return dirt1, 5% dirt2, 5% dirt3
+        match rand::random::<u8>() % 20 {
+            0..=18 => TileType::Dirt1,
+            19 => TileType::Dirt2,
+            _ => TileType::Dirt3,
+        }
     } else {
-        TileType::GrassBasic
+        TileType::Grass1
     }
 }
 
@@ -24,7 +34,7 @@ pub fn generate_terrain(seed: u32) -> Vec<Vec<Tile>> {
     let mut terrain = vec![
         vec![
             Tile {
-                tile_type: TileType::GrassBasic
+                tile_type: TileType::Grass1
             };
             MAP_SIZE_X
         ];
