@@ -36,14 +36,17 @@ pub fn generate_terrain(seed: u32) -> Vec<Vec<Tile>> {
 
     terrain
 }
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 
-// Function to generate shadows as edges around tiles
-pub fn generate_shadows_as_lines(
+pub fn generate_shadows(
     terrain: &Vec<Vec<Tile>>,
     width: usize,
     height: usize,
-) -> Vec<Vec<(bool, bool, bool, bool)>> {
-    let mut shadows = vec![vec![(false, false, false, false); width]; height];
+    seed: u64,
+) -> Vec<Vec<Vec<(usize, usize)>>> {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut shadows = vec![vec![vec![]; width]; height];
 
     for y in 0..height {
         for x in 0..width {
@@ -71,15 +74,67 @@ pub fn generate_shadows_as_lines(
                 center
             };
 
-            // Determine shaded edges
-            shadows[y][x] = (
-                center < top,    // Top edge
-                center < right,  // Right edge
-                center < bottom, // Bottom edge
-                center < left,   // Left edge
-            );
+            // Add scattered shadow dots for each shaded edge
+            if center < top {
+                shadows[y][x].append(&mut generate_shadow_dots(x, y, "top", &mut rng));
+            }
+            if center < right {
+                shadows[y][x].append(&mut generate_shadow_dots(x, y, "right", &mut rng));
+            }
+            if center < bottom {
+                shadows[y][x].append(&mut generate_shadow_dots(x, y, "bottom", &mut rng));
+            }
+            if center < left {
+                shadows[y][x].append(&mut generate_shadow_dots(x, y, "left", &mut rng));
+            }
         }
     }
 
     shadows
+}
+
+/// Generates scattered dots for shadows along a specific edge of a tile
+fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec<(usize, usize)> {
+    let mut dots = vec![];
+    let density = 60; // Number of dots to scatter along the edge
+    let depth = 7; // Depth of the shadow
+    for _ in 0..density {
+        match edge {
+            "top" => {
+                let offset_x = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_y = rng.gen_range(0..depth);
+                dots.push((
+                    x * constants::TILE_SIZE + offset_x,
+                    y * constants::TILE_SIZE + offset_y,
+                ));
+            }
+            "right" => {
+                let offset_y = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_x = rng.gen_range(0..depth);
+                dots.push((
+                    x * constants::TILE_SIZE + constants::TILE_SIZE - 1 - offset_x,
+                    y * constants::TILE_SIZE + offset_y,
+                ));
+            }
+            "bottom" => {
+                let offset_x = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_y = rng.gen_range(0..depth);
+                dots.push((
+                    x * constants::TILE_SIZE + offset_x,
+                    y * constants::TILE_SIZE + constants::TILE_SIZE - 1 - offset_y,
+                ));
+            }
+            "left" => {
+                let offset_y = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_x = rng.gen_range(0..depth);
+                dots.push((
+                    x * constants::TILE_SIZE + offset_x,
+                    y * constants::TILE_SIZE + offset_y,
+                ));
+            }
+            _ => {}
+        }
+    }
+
+    dots
 }

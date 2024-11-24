@@ -12,8 +12,12 @@ use renderer::Renderer;
 fn main() {
     // Initialize terrain and shadow generation
     let terrain = map::generate_terrain(constants::MAP_SEED);
-    let shadows =
-        map::generate_shadows_as_lines(&terrain, constants::MAP_SIZE_X, constants::MAP_SIZE_Y);
+    let shadows = map::generate_shadows(
+        &terrain,
+        constants::MAP_SIZE_X,
+        constants::MAP_SIZE_Y,
+        constants::MAP_SEED as u64,
+    );
 
     // Create the renderer
     #[cfg(target_os = "macos")]

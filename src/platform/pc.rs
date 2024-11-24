@@ -22,7 +22,7 @@ impl Renderer for PCRenderer {
     fn render(
         &mut self,
         terrain: &Vec<Vec<Tile>>,
-        shadows: &Vec<Vec<(bool, bool, bool, bool)>>,
+        shadows: &Vec<Vec<Vec<(usize, usize)>>>,
         offset_x: f64,
         offset_y: f64,
     ) {
@@ -33,8 +33,8 @@ impl Renderer for PCRenderer {
         let tile_offset_y = offset_y as usize;
 
         // Iterate over visible tiles
-        for y in 0..(SCREEN_HEIGHT) {
-            for x in 0..(SCREEN_WIDTH) {
+        for y in 0..(SCREEN_HEIGHT / TILE_SIZE) {
+            for x in 0..(SCREEN_WIDTH / TILE_SIZE) {
                 // Calculate map coordinates
                 let map_x = tile_offset_x + x;
                 let map_y = tile_offset_y + y;
@@ -46,22 +46,33 @@ impl Renderer for PCRenderer {
 
                 // Get the tile and shadow data
                 let tile = &terrain[map_y][map_x];
-                let shadow = shadows[map_y][map_x];
+                let tile_shadows = &shadows[map_y][map_x];
 
                 // Calculate screen-space coordinates for the tile
                 let start_x = x * TILE_SIZE;
                 let start_y = y * TILE_SIZE;
 
-                // Fill the buffer with the tile's color and shadow edges
-                render_with_shadows_into_buffer(
-                    tile,
-                    shadow,
-                    &mut buffer,
-                    start_x,
-                    start_y,
-                    SCREEN_WIDTH,
-                    SCREEN_HEIGHT,
-                );
+                // Fill the buffer with the tile's color
+                for ty in 0..TILE_SIZE {
+                    for tx in 0..TILE_SIZE {
+                        let px = start_x + tx;
+                        let py = start_y + ty;
+
+                        if px < SCREEN_WIDTH && py < SCREEN_HEIGHT {
+                            buffer[py * SCREEN_WIDTH + px] = tile.terrain_color;
+                        }
+                    }
+                }
+
+                // Draw scattered shadow dots
+                for &(px, py) in tile_shadows {
+                    let screen_x = px - tile_offset_x * TILE_SIZE;
+                    let screen_y = py - tile_offset_y * TILE_SIZE;
+
+                    if screen_x < SCREEN_WIDTH && screen_y < SCREEN_HEIGHT {
+                        buffer[screen_y * SCREEN_WIDTH + screen_x] = 0x333333; // Shadow color
+                    }
+                }
             }
         }
 
@@ -69,74 +80,6 @@ impl Renderer for PCRenderer {
         self.window
             .update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
             .unwrap();
-    }
-}
-
-/// Renders a tile and its shadows into the buffer at the given screen position
-fn render_with_shadows_into_buffer(
-    tile: &Tile,
-    shadow: (bool, bool, bool, bool),
-    buffer: &mut Vec<u32>,
-    start_x: usize,
-    start_y: usize,
-    screen_width: usize,
-    screen_height: usize,
-) {
-    let shadow_color = 0x333333; // Dark gray for shadows
-
-    // Fill tile color
-    for ty in 0..TILE_SIZE {
-        for tx in 0..TILE_SIZE {
-            let px = start_x + tx;
-            let py = start_y + ty;
-
-            if px < screen_width && py < screen_height {
-                buffer[py * screen_width + px] = tile.terrain_color;
-            }
-        }
-    }
-
-    // Draw shadow edges
-    let (top, right, bottom, left) = shadow;
-
-    if top {
-        for tx in 0..TILE_SIZE {
-            let px = start_x + tx;
-            let py = start_y;
-            if px < screen_width && py < screen_height {
-                buffer[py * screen_width + px] = shadow_color;
-            }
-        }
-    }
-
-    if right {
-        for ty in 0..TILE_SIZE {
-            let px = start_x + TILE_SIZE - 1;
-            let py = start_y + ty;
-            if px < screen_width && py < screen_height {
-                buffer[py * screen_width + px] = shadow_color;
-            }
-        }
-    }
-
-    if bottom {
-        for tx in 0..TILE_SIZE {
-            let px = start_x + tx;
-            let py = start_y + TILE_SIZE - 1;
-            if px < screen_width && py < screen_height {
-                buffer[py * screen_width + px] = shadow_color;
-            }
-        }
-    }
-
-    if left {
-        for ty in 0..TILE_SIZE {
-            let px = start_x;
-            let py = start_y + ty;
-            if px < screen_width && py < screen_height {
-                buffer[py * screen_width + px] = shadow_color;
-            }
-        }
     }
 }
 
