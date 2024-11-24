@@ -123,18 +123,17 @@ pub fn generate_shadows(
 /// Generates scattered dots for shadows along a specific edge of a tile
 fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec<(usize, usize)> {
     let mut dots = vec![];
-    let density = 60; // Number of dots to scatter along the edge
-    let depth = 7; // Depth of the shadow
-    for _ in 0..density {
+
+    for _ in 0..SHADOW_DENSITY {
         match edge {
             "top" => {
                 let offset_x = rng.gen_range(0..TILE_SIZE);
-                let offset_y = rng.gen_range(0..depth);
+                let offset_y = rng.gen_range(0..SHADOW_DEPTH);
                 dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + offset_y));
             }
             "right" => {
                 let offset_y = rng.gen_range(0..TILE_SIZE);
-                let offset_x = rng.gen_range(0..depth);
+                let offset_x = rng.gen_range(0..SHADOW_DEPTH);
                 dots.push((
                     x * TILE_SIZE + TILE_SIZE - 1 - offset_x,
                     y * TILE_SIZE + offset_y,
@@ -142,7 +141,7 @@ fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec
             }
             "bottom" => {
                 let offset_x = rng.gen_range(0..TILE_SIZE);
-                let offset_y = rng.gen_range(0..depth);
+                let offset_y = rng.gen_range(0..SHADOW_DEPTH);
                 dots.push((
                     x * TILE_SIZE + offset_x,
                     y * TILE_SIZE + TILE_SIZE - 1 - offset_y,
@@ -150,7 +149,7 @@ fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec
             }
             "left" => {
                 let offset_y = rng.gen_range(0..TILE_SIZE);
-                let offset_x = rng.gen_range(0..depth);
+                let offset_x = rng.gen_range(0..SHADOW_DEPTH);
                 dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + offset_y));
             }
             _ => {}
