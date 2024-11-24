@@ -158,3 +158,40 @@ fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec
 
     dots
 }
+
+pub fn generate_textures(
+    terrain: &Vec<Vec<Tile>>,
+    width: usize,
+    height: usize,
+    seed: u64,
+) -> Vec<Vec<Vec<(usize, usize)>>> {
+    let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+    let mut textures = vec![vec![vec![]; width]; height];
+
+    for y in 0..height {
+        for x in 0..width {
+            // Texture styling parameters based on tile type
+            let tile = &terrain[y][x];
+
+            let mut tile_texture = vec![];
+
+            // Generate lines for this tile
+            for line in 0..(TILE_SIZE / TEXTURE_SPACING) {
+                let y_base = line * TEXTURE_SPACING;
+
+                // Generate dots along the line within the tile
+                for _ in 0..TEXTURE_DOT_DENSITY {
+                    let x_offset = rng.gen_range(0..TILE_SIZE); // Random horizontal position within the tile
+                    let y_jitter = rng.gen_range(0..=TEXTURE_JITTER); // Slight vertical offset for randomness
+
+                    tile_texture.push((x_offset, y_base + y_jitter));
+                }
+            }
+
+            // Store the texture for the tile
+            textures[y][x] = tile_texture;
+        }
+    }
+
+    textures
+}

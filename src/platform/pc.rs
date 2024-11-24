@@ -26,6 +26,7 @@ impl Renderer for PCRenderer {
         &mut self,
         terrain: &Vec<Vec<Tile>>,
         shadows: &Vec<Vec<Vec<(usize, usize)>>>,
+        textures: &Vec<Vec<Vec<(usize, usize)>>>,
         offset_x: f64,
         offset_y: f64,
     ) {
@@ -47,15 +48,16 @@ impl Renderer for PCRenderer {
                     continue;
                 }
 
-                // Get the tile and shadow data
+                // Get the tile and data for shadows and textures
                 let tile = &terrain[map_y][map_x];
                 let tile_shadows = &shadows[map_y][map_x];
+                let tile_textures = &textures[map_y][map_x];
 
                 // Calculate screen-space coordinates for the tile
                 let start_x = x * TILE_SIZE;
                 let start_y = y * TILE_SIZE;
 
-                // Fill the buffer with the tile's color
+                // Render terrain base
                 for ty in 0..TILE_SIZE {
                     for tx in 0..TILE_SIZE {
                         let px = start_x + tx;
@@ -67,7 +69,17 @@ impl Renderer for PCRenderer {
                     }
                 }
 
-                // Draw scattered shadow dots
+                // Render texture dots
+                for &(tx, ty) in tile_textures {
+                    let px = start_x + tx;
+                    let py = start_y + ty;
+
+                    if px < SCREEN_WIDTH && py < SCREEN_HEIGHT {
+                        buffer[py * SCREEN_WIDTH + px] = tile.texture_color;
+                    }
+                }
+
+                // Render shadows
                 for &(px, py) in tile_shadows {
                     let screen_x = px - tile_offset_x * TILE_SIZE;
                     let screen_y = py - tile_offset_y * TILE_SIZE;

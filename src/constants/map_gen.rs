@@ -7,6 +7,11 @@ pub const MAP_SIZE_X: usize = 50; // Size of the map in tiles
 pub const ELEVATION_NOISE_SCALE: f64 = 3.0; // higher values make the terrain more varied
 pub const TILE_SIZE: usize = 20; // Size of each tile
 
+// Texture generation
+pub const TEXTURE_SPACING: usize = TILE_SIZE / 5; // Space between lines within the tile
+pub const TEXTURE_DOT_DENSITY: usize = 2; // Number of dots to scatter per line
+pub const TEXTURE_JITTER: usize = 2; // Max pixel jitter for randomness
+
 // Shadow generation
 pub const SHADOW_DENSITY: usize = 60; // Number of dots to scatter along the edge
 pub const SHADOW_DEPTH: usize = 7; // Depth of the shadow

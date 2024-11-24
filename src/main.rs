@@ -18,6 +18,12 @@ fn main() {
         constants::map_gen::MAP_SIZE_Y,
         constants::map_gen::MAP_SEED as u64,
     );
+    let textures = map::generate_textures(
+        &terrain,
+        constants::map_gen::MAP_SIZE_X,
+        constants::map_gen::MAP_SIZE_Y,
+        constants::map_gen::MAP_SEED as u64,
+    );
 
     // Create the renderer
     #[cfg(target_os = "macos")]
@@ -34,6 +40,6 @@ fn main() {
         platform::pc::handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
 
         // Render terrain and shadows to screen
-        renderer.render(&terrain, &shadows, offset_x, offset_y);
+        renderer.render(&terrain, &shadows, &textures, offset_x, offset_y);
     }
 }
