@@ -13,6 +13,6 @@ pub const TEXTURE_DOT_DENSITY: usize = 2; // Number of dots to scatter per line
 pub const TEXTURE_JITTER: usize = 2; // Max pixel jitter for randomness
 
 // Shadow generation
-pub const SHADOW_DENSITY: usize = 60; // Number of dots to scatter along the edge
-pub const SHADOW_DEPTH: usize = 7; // Depth of the shadow
-pub const SHADOW_DECAY: f64 = 0.8; // Decay of the shadow
+pub const SHADOW_DENSITY: usize = 35; // Number of dots to scatter first shadow level
+pub const SHADOW_DEPTH: usize = 10; // Depth of the shadow
+pub const SHADOW_DECAY: f64 = 0.7; // Decay of the shadow

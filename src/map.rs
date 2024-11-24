@@ -124,35 +124,28 @@ pub fn generate_shadows(
 fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec<(usize, usize)> {
     let mut dots = vec![];
 
-    for _ in 0..SHADOW_DENSITY {
-        match edge {
-            "top" => {
-                let offset_x = rng.gen_range(0..TILE_SIZE);
-                let offset_y = rng.gen_range(0..SHADOW_DEPTH);
-                dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + offset_y));
+    for l in 0..SHADOW_DEPTH {
+        let dots_to_add = (SHADOW_DECAY.powi(l as i32) * SHADOW_DENSITY as f64) as usize;
+        for _ in 0..dots_to_add {
+            match edge {
+                "top" => {
+                    let offset_x = rng.gen_range(0..TILE_SIZE);
+                    dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + l));
+                }
+                "right" => {
+                    let offset_y = rng.gen_range(0..TILE_SIZE);
+                    dots.push((x * TILE_SIZE + TILE_SIZE - 1 - l, y * TILE_SIZE + offset_y));
+                }
+                "bottom" => {
+                    let offset_x = rng.gen_range(0..TILE_SIZE);
+                    dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + TILE_SIZE - 1 - l));
+                }
+                "left" => {
+                    let offset_y = rng.gen_range(0..TILE_SIZE);
+                    dots.push((x * TILE_SIZE + l, y * TILE_SIZE + offset_y));
+                }
+                _ => {}
             }
-            "right" => {
-                let offset_y = rng.gen_range(0..TILE_SIZE);
-                let offset_x = rng.gen_range(0..SHADOW_DEPTH);
-                dots.push((
-                    x * TILE_SIZE + TILE_SIZE - 1 - offset_x,
-                    y * TILE_SIZE + offset_y,
-                ));
-            }
-            "bottom" => {
-                let offset_x = rng.gen_range(0..TILE_SIZE);
-                let offset_y = rng.gen_range(0..SHADOW_DEPTH);
-                dots.push((
-                    x * TILE_SIZE + offset_x,
-                    y * TILE_SIZE + TILE_SIZE - 1 - offset_y,
-                ));
-            }
-            "left" => {
-                let offset_y = rng.gen_range(0..TILE_SIZE);
-                let offset_x = rng.gen_range(0..SHADOW_DEPTH);
-                dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + offset_y));
-            }
-            _ => {}
         }
     }
 
