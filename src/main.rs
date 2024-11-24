@@ -10,21 +10,26 @@ mod platform {
 use renderer::Renderer;
 
 fn main() {
-    // Create the renderer and input handler
+    // Initialize terrain and shadow generation
+    let terrain = map::generate_terrain(constants::MAP_SEED);
+    let shadows =
+        map::generate_shadows_as_lines(&terrain, constants::MAP_SIZE_X, constants::MAP_SIZE_Y);
+
+    // Create the renderer
     #[cfg(target_os = "macos")]
     let mut renderer = platform::pc::PCRenderer::new();
 
-    // Initialize game logic
-    let map = map::generate_map(constants::MAP_SEED); // Procedural map generation with seed
+    // Initialize offsets for panning
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
 
     // Main game loop
     loop {
+        // Handle user input to adjust panning offsets
         #[cfg(target_os = "macos")]
         platform::pc::handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
 
-        // Render the map
-        renderer.render(&map, offset_x, offset_y);
+        // Render terrain and shadows to screen
+        renderer.render(&terrain, &shadows, offset_x, offset_y);
     }
 }

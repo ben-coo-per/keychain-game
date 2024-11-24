@@ -1,26 +1,24 @@
-use crate::constants::*;
-use noise::{NoiseFn, Perlin};
+use noise::NoiseFn;
 
-// A structure to represent a tile in the map
-#[derive(Clone, Copy)]
+use crate::constants;
+
+#[derive(Clone)]
 pub struct Tile {
-    pub terrain_color: u32, // The color of the terrain
+    pub terrain_color: u32,
 }
 
-// Generates a fixed 2D grid of tiles with terrain and features
-pub fn generate_map(seed: u32) -> Vec<Vec<Tile>> {
-    let perlin = Perlin::new(seed);
+// Function to generate the terrain using Perlin noise
+pub fn generate_terrain(seed: u32) -> Vec<Vec<Tile>> {
+    let perlin = noise::Perlin::new(seed);
 
-    // Initialize the map as a 2D vector of `Tile`s
-    let mut map = vec![vec![Tile { terrain_color: 0 }; MAP_SIZE_X]; MAP_SIZE_Y];
+    let mut terrain =
+        vec![vec![Tile { terrain_color: 0 }; constants::MAP_SIZE_X]; constants::MAP_SIZE_Y];
 
-    for y in 0..map.len() {
-        for x in 0..map[y].len() {
-            // Use Perlin noise for terrain generation
-            let nx = (x as f64) / (SCREEN_WIDTH / TILE_SIZE) as f64;
-            let ny = (y as f64) / (SCREEN_HEIGHT / TILE_SIZE) as f64;
+    for y in 0..constants::MAP_SIZE_Y {
+        for x in 0..constants::MAP_SIZE_X {
+            let nx = x as f64 / constants::MAP_SIZE_X as f64 * constants::ELEVATION_NOISE_SCALE;
+            let ny = y as f64 / constants::MAP_SIZE_Y as f64 * constants::ELEVATION_NOISE_SCALE;
 
-            // Generate noise value for terrain
             let noise_value = perlin.get([nx + seed as f64, ny + seed as f64]);
             let terrain_color = if noise_value < -0.5 {
                 0x000000 // Black: Deep terrain
@@ -32,10 +30,56 @@ pub fn generate_map(seed: u32) -> Vec<Vec<Tile>> {
                 0xFFFFFF // White: Snow terrain
             };
 
-            // Store the tile in the map
-            map[y][x] = Tile { terrain_color };
+            terrain[y][x] = Tile { terrain_color };
         }
     }
 
-    map
+    terrain
+}
+
+// Function to generate shadows as edges around tiles
+pub fn generate_shadows_as_lines(
+    terrain: &Vec<Vec<Tile>>,
+    width: usize,
+    height: usize,
+) -> Vec<Vec<(bool, bool, bool, bool)>> {
+    let mut shadows = vec![vec![(false, false, false, false); width]; height];
+
+    for y in 0..height {
+        for x in 0..width {
+            let center = terrain[y][x].terrain_color;
+
+            // Check neighbors
+            let top = if y > 0 {
+                terrain[y - 1][x].terrain_color
+            } else {
+                center
+            };
+            let right = if x < width - 1 {
+                terrain[y][x + 1].terrain_color
+            } else {
+                center
+            };
+            let bottom = if y < height - 1 {
+                terrain[y + 1][x].terrain_color
+            } else {
+                center
+            };
+            let left = if x > 0 {
+                terrain[y][x - 1].terrain_color
+            } else {
+                center
+            };
+
+            // Determine shaded edges
+            shadows[y][x] = (
+                center < top,    // Top edge
+                center < right,  // Right edge
+                center < bottom, // Bottom edge
+                center < left,   // Left edge
+            );
+        }
+    }
+
+    shadows
 }
