@@ -39,8 +39,8 @@ pub fn generate_terrain(seed: u32) -> Vec<Vec<Tile>> {
             if noise_value < -0.5 {
                 // water
                 terrain_color = Color::Black.to_u32();
-                shadow_color = Color::LightGray.to_u32();
-                texture_color = Color::White.to_u32();
+                shadow_color = Color::Black.to_u32();
+                texture_color = Color::DarkGray.to_u32();
             } else if noise_value < 0.0 {
                 terrain_color = Color::DarkGray.to_u32();
                 shadow_color = Color::Black.to_u32();
