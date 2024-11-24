@@ -1,43 +1,70 @@
 use noise::NoiseFn;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 
-use crate::constants;
+use crate::{constants::color::*, constants::map_gen::*};
 
 #[derive(Clone)]
 pub struct Tile {
     pub terrain_color: u32,
+    pub shadow_color: u32,
+    pub texture_color: u32,
 }
 
 // Function to generate the terrain using Perlin noise
 pub fn generate_terrain(seed: u32) -> Vec<Vec<Tile>> {
     let perlin = noise::Perlin::new(seed);
 
-    let mut terrain =
-        vec![vec![Tile { terrain_color: 0 }; constants::MAP_SIZE_X]; constants::MAP_SIZE_Y];
+    let mut terrain = vec![
+        vec![
+            Tile {
+                terrain_color: 0,
+                shadow_color: 0,
+                texture_color: 0
+            };
+            MAP_SIZE_X
+        ];
+        MAP_SIZE_Y
+    ];
 
-    for y in 0..constants::MAP_SIZE_Y {
-        for x in 0..constants::MAP_SIZE_X {
-            let nx = x as f64 / constants::MAP_SIZE_X as f64 * constants::ELEVATION_NOISE_SCALE;
-            let ny = y as f64 / constants::MAP_SIZE_Y as f64 * constants::ELEVATION_NOISE_SCALE;
+    for y in 0..MAP_SIZE_Y {
+        for x in 0..MAP_SIZE_X {
+            let nx = x as f64 / MAP_SIZE_X as f64 * ELEVATION_NOISE_SCALE;
+            let ny = y as f64 / MAP_SIZE_Y as f64 * ELEVATION_NOISE_SCALE;
 
             let noise_value = perlin.get([nx + seed as f64, ny + seed as f64]);
-            let terrain_color = if noise_value < -0.5 {
-                0x000000 // Black: Deep terrain
+            let terrain_color;
+            let shadow_color;
+            let texture_color;
+            if noise_value < -0.5 {
+                // water
+                terrain_color = Color::Black.to_u32();
+                shadow_color = Color::LightGray.to_u32();
+                texture_color = Color::White.to_u32();
             } else if noise_value < 0.0 {
-                0x555555 // Dark Gray: Low terrain
+                terrain_color = Color::DarkGray.to_u32();
+                shadow_color = Color::Black.to_u32();
+                texture_color = Color::LightGray.to_u32();
             } else if noise_value < 0.5 {
-                0xAAAAAA // Light Gray: Elevated terrain
+                terrain_color = Color::LightGray.to_u32();
+                shadow_color = Color::DarkGray.to_u32();
+                texture_color = Color::White.to_u32();
             } else {
-                0xFFFFFF // White: Snow terrain
+                terrain_color = Color::White.to_u32();
+                shadow_color = Color::LightGray.to_u32();
+                texture_color = Color::DarkGray.to_u32();
             };
 
-            terrain[y][x] = Tile { terrain_color };
+            terrain[y][x] = Tile {
+                terrain_color,
+                shadow_color,
+                texture_color,
+            };
         }
     }
 
     terrain
 }
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
 
 pub fn generate_shadows(
     terrain: &Vec<Vec<Tile>>,
@@ -101,36 +128,30 @@ fn generate_shadow_dots(x: usize, y: usize, edge: &str, rng: &mut StdRng) -> Vec
     for _ in 0..density {
         match edge {
             "top" => {
-                let offset_x = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_x = rng.gen_range(0..TILE_SIZE);
                 let offset_y = rng.gen_range(0..depth);
-                dots.push((
-                    x * constants::TILE_SIZE + offset_x,
-                    y * constants::TILE_SIZE + offset_y,
-                ));
+                dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + offset_y));
             }
             "right" => {
-                let offset_y = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_y = rng.gen_range(0..TILE_SIZE);
                 let offset_x = rng.gen_range(0..depth);
                 dots.push((
-                    x * constants::TILE_SIZE + constants::TILE_SIZE - 1 - offset_x,
-                    y * constants::TILE_SIZE + offset_y,
+                    x * TILE_SIZE + TILE_SIZE - 1 - offset_x,
+                    y * TILE_SIZE + offset_y,
                 ));
             }
             "bottom" => {
-                let offset_x = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_x = rng.gen_range(0..TILE_SIZE);
                 let offset_y = rng.gen_range(0..depth);
                 dots.push((
-                    x * constants::TILE_SIZE + offset_x,
-                    y * constants::TILE_SIZE + constants::TILE_SIZE - 1 - offset_y,
+                    x * TILE_SIZE + offset_x,
+                    y * TILE_SIZE + TILE_SIZE - 1 - offset_y,
                 ));
             }
             "left" => {
-                let offset_y = rng.gen_range(0..constants::TILE_SIZE);
+                let offset_y = rng.gen_range(0..TILE_SIZE);
                 let offset_x = rng.gen_range(0..depth);
-                dots.push((
-                    x * constants::TILE_SIZE + offset_x,
-                    y * constants::TILE_SIZE + offset_y,
-                ));
+                dots.push((x * TILE_SIZE + offset_x, y * TILE_SIZE + offset_y));
             }
             _ => {}
         }

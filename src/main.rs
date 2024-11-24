@@ -11,12 +11,12 @@ use renderer::Renderer;
 
 fn main() {
     // Initialize terrain and shadow generation
-    let terrain = map::generate_terrain(constants::MAP_SEED);
+    let terrain = map::generate_terrain(constants::map_gen::MAP_SEED);
     let shadows = map::generate_shadows(
         &terrain,
-        constants::MAP_SIZE_X,
-        constants::MAP_SIZE_Y,
-        constants::MAP_SEED as u64,
+        constants::map_gen::MAP_SIZE_X,
+        constants::map_gen::MAP_SIZE_Y,
+        constants::map_gen::MAP_SEED as u64,
     );
 
     // Create the renderer

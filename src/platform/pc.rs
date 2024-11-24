@@ -1,4 +1,7 @@
-use crate::{constants::*, map::Tile, renderer::Renderer};
+use crate::{
+    constants::device::*, constants::experience::*, constants::map_gen::*, map::Tile,
+    renderer::Renderer,
+};
 use minifb::{Key, Window, WindowOptions};
 
 pub struct PCRenderer {
@@ -70,7 +73,7 @@ impl Renderer for PCRenderer {
                     let screen_y = py - tile_offset_y * TILE_SIZE;
 
                     if screen_x < SCREEN_WIDTH && screen_y < SCREEN_HEIGHT {
-                        buffer[screen_y * SCREEN_WIDTH + screen_x] = 0x333333; // Shadow color
+                        buffer[screen_y * SCREEN_WIDTH + screen_x] = tile.shadow_color;
                     }
                 }
             }
