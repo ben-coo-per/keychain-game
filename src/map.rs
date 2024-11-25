@@ -1,6 +1,7 @@
+use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::constants::map_gen::*;
-use crate::constants::tiles::TileType;
-use noise::{NoiseFn, Perlin};
+use crate::constants::tiles::{TileType, TILE_SIZE};
+use noise::{Fbm, NoiseFn, Perlin};
 
 #[derive(Clone)]
 pub struct Tile {
@@ -18,7 +19,7 @@ const NOISE_CUTOFFS: NoiseCutoffs = NoiseCutoffs {
     dirt_threshold: 0.4,
 };
 
-/// Maps Perlin noise "generic" tile types
+/// Maps Fbm noise "generic" tile types
 fn get_basic_tile_type(noise_value: f64) -> TileType {
     let mut tile_type = TileType::Grass1;
     if noise_value < NOISE_CUTOFFS.grass_threshold {
@@ -60,39 +61,30 @@ fn calculate_rotation(
     }
 }
 
-pub fn generate_tile(x: usize, y: usize, perlin: &Perlin) -> Tile {
-    // Normalize coordinates
-    let nx = x as f64 / MAP_SIZE_X as f64;
-    let ny = y as f64 / MAP_SIZE_Y as f64;
-
-    // Get Perlin noise values for the current tile and neighbors
-    let noise_value = perlin.get([nx * NOISE_SCALE, ny * NOISE_SCALE, 0.0]);
-    let neighbors = [
-        perlin.get([
-            (nx - 1.0 / MAP_SIZE_X as f64) * NOISE_SCALE,
-            ny * NOISE_SCALE,
-            0.0,
-        ]), // Left
-        perlin.get([
-            (nx + 1.0 / MAP_SIZE_X as f64) * NOISE_SCALE,
-            ny * NOISE_SCALE,
-            0.0,
-        ]), // Right
-        perlin.get([
-            nx * NOISE_SCALE,
-            (ny - 1.0 / MAP_SIZE_Y as f64) * NOISE_SCALE,
-            0.0,
-        ]), // Top
-        perlin.get([
-            nx * NOISE_SCALE,
-            (ny + 1.0 / MAP_SIZE_Y as f64) * NOISE_SCALE,
-            0.0,
-        ]), // Bottom
-    ];
+pub fn generate_tile(x: isize, y: isize, perlin: &Fbm<Perlin>) -> Tile {
+    // println!("nx: {}, ny: {}", nx, ny);
+    // Get Fbm noise values for the current tile and neighbors
+    let noise_value = perlin.get([x as f64, y as f64, 0.0]);
+    // let neighbors = [
+    //     perlin.get([nx - NOISE_SCALE, ny, 0.0]), // Left
+    //     perlin.get([nx + NOISE_SCALE, ny, 0.0]), // Right
+    //     perlin.get([nx, ny - NOISE_SCALE, 0.0]), // Top
+    //     perlin.get([nx, ny + NOISE_SCALE, 0.0]), // Bottom
+    // ];
 
     // Determine basic tile type
     let tile_type = get_basic_tile_type(noise_value);
 
+    // Get edges and corners
+    // get_edges_and_corners(noise_value, &neighbors, tile_type)
+
+    Tile {
+        tile_type,
+        rotation: 0,
+    }
+}
+
+fn get_edges_and_corners(noise_value: f64, neighbors: &[f64; 4], tile_type: TileType) -> Tile {
     // Determine if the tile is an edge or corner
     if neighbors.iter().any(|&neighbor| {
         (neighbor < NOISE_CUTOFFS.grass_threshold) != (noise_value < NOISE_CUTOFFS.grass_threshold)
@@ -118,4 +110,31 @@ pub fn generate_tile(x: usize, y: usize, perlin: &Perlin) -> Tile {
             rotation: 0,
         }
     }
+}
+
+pub fn generate_viewport_tiles(perlin: &Fbm<Perlin>, offset_x: f64, offset_y: f64) -> Vec<Tile> {
+    /// Generates a vector of Tiles for the current viewport
+    /// The size of the vector is equal to the number of tiles that fit in the viewport
+    ///
+    /// # Arguments
+    /// * `perlin` - Fbm noise generator
+    /// * `offset_x` - Where the viewport starts horizontally
+    /// * `offset_y` - Where the viewport starts vertically
+    ///
+    /// # Returns
+    /// * `Vec<Tile>` - Vector of Tiles for the current viewport
+    let mut tiles = Vec::with_capacity(SCREEN_WIDTH / TILE_SIZE * SCREEN_HEIGHT / TILE_SIZE);
+
+    for y in 0..SCREEN_WIDTH / TILE_SIZE {
+        for x in 0..SCREEN_WIDTH / TILE_SIZE {
+            let tile = generate_tile(
+                (x as f64 + offset_x) as isize,
+                (y as f64 + offset_y) as isize,
+                &perlin,
+            );
+            tiles.push(tile);
+        }
+    }
+
+    tiles
 }

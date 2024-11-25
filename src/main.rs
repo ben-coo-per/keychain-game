@@ -3,7 +3,8 @@ mod map;
 mod renderer;
 mod tileset;
 
-use noise::Perlin;
+use constants::tiles::TILE_SIZE;
+use noise::{Fbm, MultiFractal, NoiseFn, Perlin};
 use platform::pc::*;
 use renderer::Renderer;
 use tileset::Tileset;
@@ -15,10 +16,12 @@ mod platform {
 
 fn main() {
     // Load the tileset
-    let tileset = Tileset::new(constants::tiles::TILESET_PATH, 32, 32);
+    let tileset = Tileset::new(constants::tiles::TILESET_PATH, TILE_SIZE, TILE_SIZE);
 
-    // Initialize the Perlin noise generator
-    let perlin = Perlin::new(constants::map_gen::MAP_SEED);
+    // Initialize the Fbm noise generator
+    let perlin = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
+        .set_octaves(constants::map_gen::NOISE_OCTAVES)
+        .set_frequency(constants::map_gen::NOISE_FREQUENCY);
 
     // Create the renderer
     let mut renderer = PCRenderer::new();
