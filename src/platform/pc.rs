@@ -1,12 +1,16 @@
 use crate::{
     constants::{
-        device::SCREEN_HEIGHT, device::SCREEN_WIDTH, experience::*, map_gen::*, tiles::TILE_SIZE,
+        device::{SCREEN_HEIGHT, SCREEN_WIDTH},
+        experience::*,
+        map_gen::*,
+        tiles::TILE_SIZE,
     },
-    map::Tile,
+    map::generate_tile,
     renderer::Renderer,
     tileset::Tileset,
 };
 use minifb::{Key, Window, WindowOptions};
+use noise::Perlin;
 
 pub struct PCRenderer {
     pub window: Window,
@@ -26,13 +30,7 @@ impl PCRenderer {
 }
 
 impl Renderer for PCRenderer {
-    fn render(
-        &mut self,
-        terrain: &Vec<Vec<Tile>>,
-        tileset: &Tileset,
-        offset_x: f64,
-        offset_y: f64,
-    ) {
+    fn render(&mut self, perlin: &Perlin, tileset: &Tileset, offset_x: f64, offset_y: f64) {
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 
         let tile_offset_x = offset_x as usize;
@@ -43,11 +41,8 @@ impl Renderer for PCRenderer {
                 let map_x = tile_offset_x + x;
                 let map_y = tile_offset_y + y;
 
-                if map_y >= terrain.len() || map_x >= terrain[0].len() {
-                    continue;
-                }
-
-                let tile = &terrain[map_y][map_x];
+                // Dynamically generate the tile at (map_x, map_y)
+                let tile = generate_tile(map_x, map_y, perlin);
                 let tile_index = tile.tile_type.to_index();
                 let tile_pixels = tileset.get_tile_pixels(tile_index);
 
@@ -57,8 +52,19 @@ impl Renderer for PCRenderer {
                         let py = y * tileset.tile_height + ty;
 
                         if px < SCREEN_WIDTH && py < SCREEN_HEIGHT {
-                            buffer[py * SCREEN_WIDTH + px] =
-                                tile_pixels[ty * tileset.tile_width + tx];
+                            // Apply rotation to tile pixels
+                            let rotated_index = match tile.rotation {
+                                0 => ty * tileset.tile_width + tx, // No rotation
+                                90 => tx * tileset.tile_width + (tileset.tile_height - 1 - ty), // 90 degrees clockwise
+                                180 => {
+                                    (tileset.tile_height - 1 - ty) * tileset.tile_width
+                                        + (tileset.tile_width - 1 - tx)
+                                } // 180 degrees clockwise
+                                270 => (tileset.tile_width - 1 - tx) * tileset.tile_width + ty, // 270 degrees clockwise
+                                _ => ty * tileset.tile_width + tx, // Default: No rotation
+                            };
+
+                            buffer[py * SCREEN_WIDTH + px] = tile_pixels[rotated_index];
                         }
                     }
                 }

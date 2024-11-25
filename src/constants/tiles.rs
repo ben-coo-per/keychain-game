@@ -1,12 +1,15 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TileType {
     Grass1 = 0,
     Grass2 = 1,
     Grass3 = 2,
+    Dirt1 = 3,
+    Dirt2 = 4,
+    Dirt3 = 5,
 
-    Dirt1 = 32,
-    Dirt2 = 33,
-    Dirt3 = 34,
+    GrassEdge = 32,
+    GrassOuterCorner = 33,
+    GrassInnerCorner = 34,
 }
 
 impl TileType {
