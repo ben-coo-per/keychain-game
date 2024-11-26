@@ -2,10 +2,10 @@ use crate::{
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
         experience::*,
-        tiles::TILE_SIZE,
+        tiles::{TerrainType, TILE_SIZE},
     },
-    map::generate_viewport_tiles,
     renderer::Renderer,
+    terrain::map::generate_terrain_grid,
     tileset::Tileset,
 };
 use minifb::{Key, Window, WindowOptions};
@@ -48,37 +48,61 @@ impl PCRenderer {
 }
 impl Renderer for PCRenderer {
     fn render(&mut self, perlin: &Fbm<Perlin>, tileset: &Tileset, offset_x: f64, offset_y: f64) {
-        // Create an empty buffer to store the pixel data for the window
+        // // Create an empty buffer to store the pixel data for the window
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 
-        let current_view = generate_viewport_tiles(&perlin, offset_x, offset_y);
-        assert_eq!(
-            current_view.len(),
-            (SCREEN_WIDTH / TILE_SIZE) * (SCREEN_HEIGHT / TILE_SIZE),
-            "Mismatch in current_view size"
-        );
+        // self.window
+        //     .update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
+        //     .unwrap();
 
-        // loop through tiles in current_view and add them to the buffer
-        for (i, tile) in current_view.iter().enumerate() {
-            let tile_pixels = tileset.get_tile_pixels(tile.tile_type.to_index());
-            let tiles_per_row = SCREEN_WIDTH / TILE_SIZE;
-            let tile_x = (i % tiles_per_row) * TILE_SIZE;
-            let tile_y = (i / tiles_per_row) * TILE_SIZE;
+        // render Grid A that has red lines spaced 32 pixels apart in the x and y directions
+        for x in (0..SCREEN_WIDTH).step_by(TILE_SIZE) {
+            for y in (0..SCREEN_HEIGHT).step_by(1) {
+                let pixel_index = y * SCREEN_WIDTH + x;
+                buffer[pixel_index] = 0xFF0000;
+            }
+        }
+        for y in (0..SCREEN_HEIGHT).step_by(TILE_SIZE) {
+            for x in (0..SCREEN_WIDTH).step_by(1) {
+                let pixel_index = y * SCREEN_WIDTH + x;
+                buffer[pixel_index] = 0xFF0000;
+            }
+        }
 
-            assert_eq!(
-                tile_pixels.len(),
-                TILE_SIZE * TILE_SIZE,
-                "Tile pixel data size mismatch"
-            );
+        let terrain = generate_terrain_grid(&perlin, offset_x, offset_y);
 
-            // merge the tile pixels with the buffer
-            for y in 0..TILE_SIZE {
-                for x in 0..TILE_SIZE {
-                    if tile_x + x < SCREEN_WIDTH && tile_y + y < SCREEN_HEIGHT {
-                        let pixel_index = (tile_y + y) * SCREEN_WIDTH + tile_x + x;
-                        buffer[pixel_index] = tile_pixels[y * TILE_SIZE + x];
+        // render terrain numerical values within the grid
+        // for Grass (0), render 1 dot in white
+        // for Dirt (1), render 3 dots in white
+
+        for y in (6..SCREEN_HEIGHT).step_by(TILE_SIZE) {
+            for x in (6..SCREEN_WIDTH).step_by(TILE_SIZE) {
+                let pixel_index = y * SCREEN_WIDTH + x;
+                match terrain[y][x] {
+                    TerrainType::Grass => {
+                        buffer[pixel_index] = 0xFFFFFF;
                     }
+                    TerrainType::Dirt => {
+                        buffer[pixel_index] = 0xFFFFFF;
+                        buffer[pixel_index + 1] = 0xFFFFFF;
+                        buffer[pixel_index + 2] = 0xFFFFFF;
+                    }
+                    _ => {}
                 }
+            }
+        }
+
+        // render Grid B that has blue lines spaced 32 pixels apart in the x and y directions and is offset by 16 pixels in both directions
+        for x in (16..SCREEN_WIDTH).step_by(TILE_SIZE) {
+            for y in (0..SCREEN_HEIGHT).step_by(1) {
+                let pixel_index = y * SCREEN_WIDTH + x;
+                buffer[pixel_index] = 0x0000FF;
+            }
+        }
+        for y in (16..SCREEN_HEIGHT).step_by(TILE_SIZE) {
+            for x in (0..SCREEN_WIDTH).step_by(1) {
+                let pixel_index = y * SCREEN_WIDTH + x;
+                buffer[pixel_index] = 0x0000FF;
             }
         }
 

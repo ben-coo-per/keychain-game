@@ -20,3 +20,9 @@ impl TileType {
 
 pub const TILE_SIZE: usize = 32;
 pub const TILESET_PATH: &str = "assets/tileset.png";
+
+#[derive(Clone)]
+pub enum TerrainType {
+    Grass = 0,
+    Dirt = 1,
+}
