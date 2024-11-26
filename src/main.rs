@@ -1,10 +1,10 @@
 mod constants;
-mod map;
 mod renderer;
+mod terrain;
 mod tileset;
 
 use constants::tiles::TILE_SIZE;
-use noise::{Fbm, MultiFractal, NoiseFn, Perlin};
+use noise::{Fbm, MultiFractal, Perlin};
 use platform::pc::*;
 use renderer::Renderer;
 use tileset::Tileset;

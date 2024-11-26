@@ -1,5 +1,4 @@
 use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::constants::map_gen::*;
 use crate::constants::tiles::{TileType, TILE_SIZE};
 use noise::{Fbm, NoiseFn, Perlin};
 
