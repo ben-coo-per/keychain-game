@@ -1,11 +1,9 @@
 use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::constants::tiles::{TerrainType, TileType, TILE_SIZE};
+use crate::constants::terrain::{TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT};
+use crate::constants::tiles::{get_tile_index_from_bitmap, TILE_SIZE};
 use noise::{Fbm, NoiseFn, Perlin};
 
-#[derive(Clone)]
-pub struct Tile {
-    pub tile_type: TileType, // Use TileType for each tile
-}
+type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each terrain type
 
 /// Configuration for noise thresholds to determine tile types
 pub struct NoiseCutoffs {
@@ -17,7 +15,7 @@ const NOISE_CUTOFFS: NoiseCutoffs = NoiseCutoffs {
     dirt_threshold: 0.4,
 };
 
-pub fn generate_terrain_grid(
+fn generate_terrain_grid(
     perlin: &Fbm<Perlin>,
     offset_x: f64,
     offset_y: f64,
@@ -44,4 +42,79 @@ pub fn generate_terrain_grid(
     }
 
     viewport_terrain_grid
+}
+
+fn get_tile_bitmap(target_terrain: &TerrainType, terrain_tiles: [&TerrainType; 4]) -> u8 {
+    // Returns the bitmap index for the tile based on the terrain tiles of the 4 corners of the tile
+    // The terrain tiles are ordered as follows:
+    // terrains[0] | terrains[1]
+    // ------------|------------
+    // terrains[2] | terrains[3]
+    let mut tile_bitmap: u8 = 0b0000;
+    for (i, terrain_tile) in terrain_tiles.iter().enumerate() {
+        if **terrain_tile == *target_terrain {
+            tile_bitmap |= 1 << i;
+        }
+    }
+    tile_bitmap
+}
+
+pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUNT] {
+    // Returns a list of img indexes for the tile based on the terrain tiles of the 4 corners of the tile
+    // The terrain tiles are ordered as follows:
+    // terrains[0] | terrains[1]
+    // ------------|------------
+    // terrains[2] | terrains[3]
+    let mut tile_cake: [u8; 5] = [get_tile_index_from_bitmap(0b0000); TERRAIN_TYPE_COUNT];
+    for (i, terrain_option) in ALL_TERRAIN_TYPES.iter().enumerate() {
+        let bitmap = get_tile_bitmap(terrain_option, terrain_tiles);
+        tile_cake[i] = get_tile_index_from_bitmap(bitmap);
+    }
+    tile_cake
+}
+
+pub struct Viewport<'a> {
+    noise_fn: &'a Fbm<Perlin>, // Procedural noise generator
+}
+
+impl<'a> Viewport<'a> {
+    /// Create a new viewport with the given dimensions and tile size
+    pub fn new(noise_fn: &'a Fbm<Perlin>) -> Self {
+        Self { noise_fn }
+    }
+
+    /// Generate the tiles for the current viewport based on offsets
+    pub fn get_tiles_to_render(&self, offset_x: f64, offset_y: f64) -> Vec<Vec<TileCake>> {
+        // Calculate how many tiles fit in the viewport
+        let tiles_across = SCREEN_WIDTH / TILE_SIZE;
+        let tiles_down = SCREEN_HEIGHT / TILE_SIZE;
+
+        // Get terrain grid for the current viewport (offset by 1/2 tile size up and left. Extend by 1 tile size down and right)
+        let terrain_grid = generate_terrain_grid(
+            self.noise_fn,
+            offset_x - TILE_SIZE as f64 / 2.0,
+            offset_y - TILE_SIZE as f64 / 2.0,
+        );
+
+        // Choose the tile type based on the terrain types of the 4 corners of the tile
+        let mut tiles: Vec<Vec<TileCake>> = Vec::new();
+
+        // Iterate over the tiles in the viewport
+        for y in 0..tiles_down {
+            let mut row: Vec<TileCake> = Vec::new();
+            for x in 0..tiles_across {
+                let terrains = [
+                    &terrain_grid[y][x],
+                    &terrain_grid[y][x + 1],
+                    &terrain_grid[y + 1][x],
+                    &terrain_grid[y + 1][x + 1],
+                ];
+                let tile_cake = get_tile_cake(terrains);
+
+                row.push(tile_cake);
+            }
+            tiles.push(row);
+        }
+        tiles
+    }
 }

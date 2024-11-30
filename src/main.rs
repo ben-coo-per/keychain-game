@@ -3,10 +3,14 @@ mod renderer;
 mod terrain;
 mod tileset;
 
-use constants::tiles::TILE_SIZE;
+use constants::{
+    device::{SCREEN_HEIGHT, SCREEN_WIDTH},
+    tiles::TILE_SIZE,
+};
 use noise::{Fbm, MultiFractal, Perlin};
 use platform::pc::*;
 use renderer::Renderer;
+use terrain::map::Viewport;
 use tileset::Tileset;
 
 #[cfg(target_os = "macos")]
@@ -23,6 +27,9 @@ fn main() {
         .set_octaves(constants::map_gen::NOISE_OCTAVES)
         .set_frequency(constants::map_gen::NOISE_FREQUENCY);
 
+    // Create the viewport
+    let viewport = Viewport::new(&perlin);
+
     // Create the renderer
     let mut renderer = PCRenderer::new();
     let mut offset_x = 0.0;
@@ -33,6 +40,6 @@ fn main() {
         handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
 
         // Render the map using dynamically generated tiles
-        renderer.render(&perlin, &tileset, offset_x, offset_y);
+        renderer.render(&viewport, &tileset, offset_x, offset_y);
     }
 }
