@@ -41,7 +41,11 @@ fn main() {
         // Handle user input to adjust the viewport offsets
         handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
 
+        // Generate tiles for the current viewport
+        println!("offset_x: {}, offset_y: {}", offset_x, offset_y);
+        let tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
+
         // Render the map using dynamically generated tiles
-        renderer.render(&viewport, &tile_atlas, offset_x, offset_y);
+        renderer.render(&tiles_to_render, &tile_atlas);
     }
 }

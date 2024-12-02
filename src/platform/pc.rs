@@ -1,27 +1,27 @@
 use crate::{
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
-        terrain::{TerrainType, ALL_TERRAIN_TYPES},
+        experience::MOVE_SPEED,
+        terrain::ALL_TERRAIN_TYPES,
         tiles::TILE_SIZE,
     },
     renderer::Renderer,
-    terrain::map::Viewport,
-    tileset::{TileAtlas, TileOffsets},
+    tileset::TileAtlas,
 };
 use minifb::{Key, Window, WindowOptions};
 
 pub fn handle_input(window: &mut Window, offset_x: &mut f64, offset_y: &mut f64) {
     if window.is_key_down(Key::Up) {
-        *offset_y -= TILE_SIZE as f64;
+        *offset_y -= MOVE_SPEED as f64;
     }
     if window.is_key_down(Key::Down) {
-        *offset_y += TILE_SIZE as f64;
+        *offset_y += MOVE_SPEED as f64;
     }
     if window.is_key_down(Key::Left) {
-        *offset_x -= TILE_SIZE as f64;
+        *offset_x -= MOVE_SPEED as f64;
     }
     if window.is_key_down(Key::Right) {
-        *offset_x += TILE_SIZE as f64;
+        *offset_x += MOVE_SPEED as f64;
     }
 
     // Round offset values to one decimal place
@@ -47,18 +47,9 @@ impl PCRenderer {
 }
 
 impl Renderer for PCRenderer {
-    fn render(
-        &mut self,
-        viewport: &Viewport,
-        tile_atlas: &TileAtlas,
-        offset_x: f64,
-        offset_y: f64,
-    ) {
+    fn render(&mut self, tiles_to_render: &Vec<Vec<[u8; 2]>>, tile_atlas: &TileAtlas) {
         // Create an empty buffer to store the pixel data for the window
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
-
-        // Generate tiles for the current viewport
-        let tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
 
         // Loop through the `TileCake` structure to render layers from bottom to top
         for (y, row) in tiles_to_render.iter().enumerate() {

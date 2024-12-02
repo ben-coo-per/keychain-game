@@ -1,3 +1,5 @@
+use core::num;
+
 use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::constants::terrain::{TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT};
 use crate::constants::tiles::{get_tile_index_from_bitmap, TILE_SIZE};
@@ -11,8 +13,8 @@ pub struct NoiseCutoffs {
     dirt_threshold: f64,
 }
 const NOISE_CUTOFFS: NoiseCutoffs = NoiseCutoffs {
-    grass_threshold: 0.2,
-    dirt_threshold: 0.4,
+    grass_threshold: 0.5,
+    dirt_threshold: 0.9,
 };
 
 fn generate_terrain_grid(
@@ -24,12 +26,14 @@ fn generate_terrain_grid(
 
     let mut viewport_terrain_grid = vec![vec![TerrainType::Grass; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
-    for x in 0..SCREEN_WIDTH {
-        for y in 0..SCREEN_HEIGHT {
-            let noise_value = perlin.get([
-                (x as f64 + offset_x) / TILE_SIZE as f64,
-                (y as f64 + offset_y) / TILE_SIZE as f64,
-            ]);
+    let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 1;
+    let num_y_tiles = SCREEN_HEIGHT / TILE_SIZE + 1;
+
+    for x in 0..num_x_tiles {
+        for y in 0..num_y_tiles {
+            let noise_value = perlin.get([(x as f64 - offset_x), (y as f64 - offset_y)]);
+
+            println!("noise_value: {}", noise_value);
 
             let terrain_type = match noise_value {
                 n if n < NOISE_CUTOFFS.grass_threshold => TerrainType::Grass,

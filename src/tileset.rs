@@ -2,15 +2,6 @@ use image::ImageReader;
 use std::collections::HashMap;
 
 use crate::constants::terrain::TerrainType;
-use crate::constants::tiles::TILE_INDICES;
-
-// This defines how tiles are laid out in the tileset
-enum Corner {
-    TopLeft = 0b1000,
-    TopRight = 0b0100,
-    BottomLeft = 0b0010,
-    BottomRight = 0b0001,
-}
 
 pub struct TileAtlas {
     pub texture: Vec<u32>,    // Pixel data for the tileset
@@ -45,13 +36,7 @@ impl TileAtlas {
         }
     }
 
-    pub fn get_tile_index_from_corners(&self, corners: u8) -> usize {
-        TILE_INDICES[corners as usize] as usize
-    }
-
     pub fn get_tile_pixels(&self, tile_index: usize, terrain: &TerrainType) -> Vec<u32> {
-        println!("tile_index: {}", tile_index,);
-        println!("terrain: {:?}", terrain);
         let tileset = self.tilesets.get(terrain).unwrap();
         let offset_y = tileset.starting_offset_y;
         let offset_x = tileset.starting_offset_x;
@@ -94,26 +79,6 @@ impl TileOffsets {
         Self {
             starting_offset_x,
             starting_offset_y,
-        }
-    }
-}
-
-struct Tile {
-    terrain_type: TerrainType,
-    secondary_terrain_type: Option<TerrainType>,
-    corners: u8,
-}
-
-impl Tile {
-    pub fn new(
-        terrain_type: TerrainType,
-        secondary_terrain_type: Option<TerrainType>,
-        corners: u8,
-    ) -> Self {
-        Self {
-            terrain_type,
-            secondary_terrain_type,
-            corners,
         }
     }
 }
