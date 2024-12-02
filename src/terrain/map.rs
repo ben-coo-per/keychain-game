@@ -65,7 +65,8 @@ pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUN
     // terrains[0] | terrains[1]
     // ------------|------------
     // terrains[2] | terrains[3]
-    let mut tile_cake: [u8; 5] = [get_tile_index_from_bitmap(0b0000); TERRAIN_TYPE_COUNT];
+    let mut tile_cake: [u8; TERRAIN_TYPE_COUNT] =
+        [get_tile_index_from_bitmap(0b0000); TERRAIN_TYPE_COUNT];
     for (i, terrain_option) in ALL_TERRAIN_TYPES.iter().enumerate() {
         let bitmap = get_tile_bitmap(terrain_option, terrain_tiles);
         tile_cake[i] = get_tile_index_from_bitmap(bitmap);

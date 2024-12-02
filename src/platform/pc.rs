@@ -1,11 +1,12 @@
 use crate::{
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
+        terrain::{TerrainType, ALL_TERRAIN_TYPES},
         tiles::TILE_SIZE,
     },
     renderer::Renderer,
     terrain::map::Viewport,
-    tileset::Tileset,
+    tileset::{TileAtlas, TileOffsets},
 };
 use minifb::{Key, Window, WindowOptions};
 
@@ -46,7 +47,13 @@ impl PCRenderer {
 }
 
 impl Renderer for PCRenderer {
-    fn render(&mut self, viewport: &Viewport, tileset: &Tileset, offset_x: f64, offset_y: f64) {
+    fn render(
+        &mut self,
+        viewport: &Viewport,
+        tile_atlas: &TileAtlas,
+        offset_x: f64,
+        offset_y: f64,
+    ) {
         // Create an empty buffer to store the pixel data for the window
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 
@@ -59,9 +66,13 @@ impl Renderer for PCRenderer {
                 let tile_screen_x = x * TILE_SIZE;
                 let tile_screen_y = y * TILE_SIZE;
 
-                for (terrain_layer, tile_index) in tile_cake.iter().enumerate() {
-                    // Get the tile's pixel data from the tileset
-                    let tile_pixels = tileset.get_tile_pixels(*tile_index as usize);
+                for (terrain_layer_index, tile_index) in tile_cake.iter().enumerate() {
+                    // Get the terrain type for the current layer
+                    let terrain_layer = &ALL_TERRAIN_TYPES[terrain_layer_index];
+
+                    // Get the tile's pixel data from the tileOffset
+                    let tile_pixels =
+                        tile_atlas.get_tile_pixels(*tile_index as usize, terrain_layer);
 
                     // Copy tile pixels into the buffer
                     for ty in 0..TILE_SIZE {

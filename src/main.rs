@@ -3,15 +3,13 @@ mod renderer;
 mod terrain;
 mod tileset;
 
-use constants::{
-    device::{SCREEN_HEIGHT, SCREEN_WIDTH},
-    tiles::TILE_SIZE,
-};
+use constants::terrain::TerrainType;
+use constants::tiles::{TILESET_PATH, TILE_SIZE};
 use noise::{Fbm, MultiFractal, Perlin};
 use platform::pc::*;
 use renderer::Renderer;
 use terrain::map::Viewport;
-use tileset::Tileset;
+use tileset::TileAtlas;
 
 #[cfg(target_os = "macos")]
 mod platform {
@@ -19,8 +17,12 @@ mod platform {
 }
 
 fn main() {
-    // Load the tileset
-    let tileset = Tileset::new(constants::tiles::TILESET_PATH, TILE_SIZE, TILE_SIZE);
+    // Initialize Tile Atlas
+    let mut tile_atlas: TileAtlas = TileAtlas::new(TILESET_PATH, TILE_SIZE, TILE_SIZE);
+
+    // Register tilesets
+    tile_atlas.register_tileset(TerrainType::Grass, 0, 0);
+    tile_atlas.register_tileset(TerrainType::Dirt, 5, 0);
 
     // Initialize the Fbm noise generator
     let perlin = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
@@ -40,6 +42,6 @@ fn main() {
         handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
 
         // Render the map using dynamically generated tiles
-        renderer.render(&viewport, &tileset, offset_x, offset_y);
+        renderer.render(&viewport, &tile_atlas, offset_x, offset_y);
     }
 }
