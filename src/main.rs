@@ -22,7 +22,7 @@ fn main() {
 
     // Register tilesets
     tile_atlas.register_tileset(TerrainType::Grass, 0, 0);
-    tile_atlas.register_tileset(TerrainType::Dirt, 5, 0);
+    tile_atlas.register_tileset(TerrainType::Dirt, 4, 0);
 
     // Initialize the Fbm noise generator
     let perlin = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
@@ -42,7 +42,6 @@ fn main() {
         handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
 
         // Generate tiles for the current viewport
-        println!("offset_x: {}, offset_y: {}", offset_x, offset_y);
         let tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
 
         // Render the map using dynamically generated tiles

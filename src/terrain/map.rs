@@ -1,5 +1,3 @@
-use core::num;
-
 use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::constants::terrain::{TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT};
 use crate::constants::tiles::{get_tile_index_from_bitmap, TILE_SIZE};
@@ -9,12 +7,12 @@ type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each terra
 
 /// Configuration for noise thresholds to determine tile types
 pub struct NoiseCutoffs {
-    grass_threshold: f64,
     dirt_threshold: f64,
+    grass_threshold: f64,
 }
 const NOISE_CUTOFFS: NoiseCutoffs = NoiseCutoffs {
+    dirt_threshold: 0.0,
     grass_threshold: 0.5,
-    dirt_threshold: 0.9,
 };
 
 fn generate_terrain_grid(
@@ -33,11 +31,11 @@ fn generate_terrain_grid(
         for y in 0..num_y_tiles {
             let noise_value = perlin.get([(x as f64 - offset_x), (y as f64 - offset_y)]);
 
-            println!("noise_value: {}", noise_value);
-
-            let terrain_type = match noise_value {
-                n if n < NOISE_CUTOFFS.grass_threshold => TerrainType::Grass,
-                n if n < NOISE_CUTOFFS.dirt_threshold => TerrainType::Dirt,
+            // Normalize the noise value to be between 0 and 1
+            let normalized_noise = (noise_value + 1.0) / 2.0;
+            let terrain_type = match normalized_noise {
+                n if n > NOISE_CUTOFFS.grass_threshold => TerrainType::Grass,
+                n if n > NOISE_CUTOFFS.dirt_threshold => TerrainType::Dirt,
                 _ => TerrainType::Dirt,
             };
 
@@ -57,7 +55,7 @@ fn get_tile_bitmap(target_terrain: &TerrainType, terrain_tiles: [&TerrainType; 4
     let mut tile_bitmap: u8 = 0b0000;
     for (i, terrain_tile) in terrain_tiles.iter().enumerate() {
         if **terrain_tile == *target_terrain {
-            tile_bitmap |= 1 << i;
+            tile_bitmap |= 1 << (3 - i);
         }
     }
     tile_bitmap
@@ -75,6 +73,7 @@ pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUN
         let bitmap = get_tile_bitmap(terrain_option, terrain_tiles);
         tile_cake[i] = get_tile_index_from_bitmap(bitmap);
     }
+
     tile_cake
 }
 
@@ -111,8 +110,8 @@ impl<'a> Viewport<'a> {
                 let terrains = [
                     &terrain_grid[y][x],
                     &terrain_grid[y][x + 1],
-                    &terrain_grid[y + 1][x],
                     &terrain_grid[y + 1][x + 1],
+                    &terrain_grid[y + 1][x],
                 ];
                 let tile_cake = get_tile_cake(terrains);
 

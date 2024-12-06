@@ -12,21 +12,21 @@ use minifb::{Key, Window, WindowOptions};
 
 pub fn handle_input(window: &mut Window, offset_x: &mut f64, offset_y: &mut f64) {
     if window.is_key_down(Key::Up) {
-        *offset_y -= MOVE_SPEED as f64;
-    }
-    if window.is_key_down(Key::Down) {
         *offset_y += MOVE_SPEED as f64;
     }
-    if window.is_key_down(Key::Left) {
-        *offset_x -= MOVE_SPEED as f64;
+    if window.is_key_down(Key::Down) {
+        *offset_y -= MOVE_SPEED as f64;
     }
-    if window.is_key_down(Key::Right) {
+    if window.is_key_down(Key::Left) {
         *offset_x += MOVE_SPEED as f64;
     }
+    if window.is_key_down(Key::Right) {
+        *offset_x -= MOVE_SPEED as f64;
+    }
 
-    // Round offset values to one decimal place
-    *offset_x = (*offset_x * 10.0).round() / 10.0;
-    *offset_y = (*offset_y * 10.0).round() / 10.0;
+    // Round offset values to two decimal places
+    *offset_x = (*offset_x * 100.0).round() / 100.0;
+    *offset_y = (*offset_y * 100.0).round() / 100.0;
 }
 
 pub struct PCRenderer {
@@ -36,7 +36,7 @@ pub struct PCRenderer {
 impl PCRenderer {
     pub fn new() -> Self {
         let window = Window::new(
-            "Tile Renderer",
+            "Tile Renderer with Borders",
             SCREEN_WIDTH,
             SCREEN_HEIGHT,
             WindowOptions::default(),
