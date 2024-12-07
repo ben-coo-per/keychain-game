@@ -45,7 +45,7 @@ pub struct PCRenderer {
 impl PCRenderer {
     pub fn new() -> Self {
         let window = Window::new(
-            "Tile Renderer with Borders",
+            "Apocalypse Keychain",
             SCREEN_WIDTH,
             SCREEN_HEIGHT,
             WindowOptions::default(),
