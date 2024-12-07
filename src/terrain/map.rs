@@ -47,11 +47,6 @@ fn generate_terrain_grid(
 }
 
 fn get_tile_bitmap(target_terrain: &TerrainType, terrain_tiles: [&TerrainType; 4]) -> u8 {
-    // Returns the bitmap index for the tile based on the terrain tiles of the 4 corners of the tile
-    // The terrain tiles are ordered as follows:
-    // terrains[0] | terrains[1]
-    // ------------|------------
-    // terrains[2] | terrains[3]
     let mut tile_bitmap: u8 = 0b0000;
     for (i, terrain_tile) in terrain_tiles.iter().enumerate() {
         if **terrain_tile == *target_terrain {
@@ -63,10 +58,6 @@ fn get_tile_bitmap(target_terrain: &TerrainType, terrain_tiles: [&TerrainType; 4
 
 pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUNT] {
     // Returns a list of img indexes for the tile based on the terrain tiles of the 4 corners of the tile
-    // The terrain tiles are ordered as follows:
-    // terrains[0] | terrains[1]
-    // ------------|------------
-    // terrains[2] | terrains[3]
     let mut tile_cake: [u8; TERRAIN_TYPE_COUNT] =
         [get_tile_index_from_bitmap(0b0000); TERRAIN_TYPE_COUNT];
     for (i, terrain_option) in ALL_TERRAIN_TYPES.iter().enumerate() {

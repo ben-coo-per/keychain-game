@@ -41,15 +41,15 @@ impl TileAtlas {
         let offset_y = tileset.starting_offset_y;
         let offset_x = tileset.starting_offset_x;
 
-        let row = tile_index / self.tiles_per_row;
-        let col = tile_index % self.tiles_per_row;
+        let row = (tile_index / self.tiles_per_row) + offset_y;
+        let col = (tile_index % self.tiles_per_row) + offset_x;
 
         let mut tile_pixels = vec![];
 
         for y in 0..self.tile_height {
             for x in 0..self.tile_width {
-                let tileset_x = col * self.tile_width + x + offset_x;
-                let tileset_y = row * self.tile_height + y + offset_y;
+                let tileset_x = col * self.tile_width + x;
+                let tileset_y = row * self.tile_height + y;
                 let pixel_index = tileset_y * (self.tile_width * self.tiles_per_row) + tileset_x;
 
                 tile_pixels.push(self.texture[pixel_index]);

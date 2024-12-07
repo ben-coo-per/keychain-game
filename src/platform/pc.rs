@@ -73,9 +73,10 @@ impl Renderer for PCRenderer {
                             if buffer_x < SCREEN_WIDTH && buffer_y < SCREEN_HEIGHT {
                                 let buffer_index = buffer_y * SCREEN_WIDTH + buffer_x;
 
-                                // Draw the pixel only if it's part of the current layer
+                                // Draw the pixel only if it's part of the current layer and not transparent
                                 let pixel_value = tile_pixels[ty * TILE_SIZE + tx];
-                                if pixel_value != 0 {
+                                let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
+                                if alpha != 0 {
                                     buffer[buffer_index] = pixel_value;
                                 }
                             }
