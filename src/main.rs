@@ -3,7 +3,7 @@ mod renderer;
 mod terrain;
 mod tileset;
 
-use constants::terrain::TerrainType;
+use constants::terrain::{TerrainType, TERRAIN_TYPE_COUNT};
 use constants::tiles::{TILESET_PATH, TILE_SIZE};
 use noise::{Fbm, MultiFractal, Perlin};
 use platform::pc::*;
@@ -23,6 +23,9 @@ fn main() {
     // Register tilesets
     tile_atlas.register_tileset(TerrainType::Grass, 0, 0);
     tile_atlas.register_tileset(TerrainType::Dirt, 4, 0);
+    tile_atlas.register_tileset(TerrainType::Stone, 8, 0);
+    tile_atlas.register_tileset(TerrainType::Sand, 12, 0);
+    tile_atlas.register_tileset(TerrainType::Water, 16, 0);
 
     // Initialize the Fbm noise generator
     let perlin = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
@@ -37,7 +40,7 @@ fn main() {
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
     let mut view_changed = true;
-    let mut tiles_to_render: Vec<Vec<[u8; 2]>> = Vec::new();
+    let mut tiles_to_render: Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>> = Vec::new();
     loop {
         handle_input(
             &mut renderer.window,

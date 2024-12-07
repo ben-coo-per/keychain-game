@@ -1,19 +1,12 @@
+use crate::constants::biome;
 use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::constants::terrain::{TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT};
+use crate::constants::terrain::{
+    get_noise_cutoffs, TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT,
+};
 use crate::constants::tiles::{get_tile_index_from_bitmap, TILE_SIZE};
 use noise::{Fbm, NoiseFn, Perlin};
 
 type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each terrain type
-
-/// Configuration for noise thresholds to determine tile types
-pub struct NoiseCutoffs {
-    dirt_threshold: f64,
-    grass_threshold: f64,
-}
-const NOISE_CUTOFFS: NoiseCutoffs = NoiseCutoffs {
-    dirt_threshold: 0.0,
-    grass_threshold: 0.5,
-};
 
 fn generate_terrain_grid(
     perlin: &Fbm<Perlin>,
@@ -22,6 +15,7 @@ fn generate_terrain_grid(
 ) -> Vec<Vec<TerrainType>> {
     // Creates a 2D Vector of the viewport that holds the terrain type for each tile in the terrain grid
 
+    let noise_cutoffs = get_noise_cutoffs(&biome::BIOME_MOUNTAIN);
     let mut viewport_terrain_grid = vec![vec![TerrainType::Grass; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
     let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 1;
@@ -34,9 +28,12 @@ fn generate_terrain_grid(
             // Normalize the noise value to be between 0 and 1
             let normalized_noise = (noise_value + 1.0) / 2.0;
             let terrain_type = match normalized_noise {
-                n if n > NOISE_CUTOFFS.grass_threshold => TerrainType::Grass,
-                n if n > NOISE_CUTOFFS.dirt_threshold => TerrainType::Dirt,
-                _ => TerrainType::Dirt,
+                n if n > noise_cutoffs.grass_threshold => TerrainType::Grass,
+                n if n > noise_cutoffs.dirt_threshold => TerrainType::Dirt,
+                n if n > noise_cutoffs.stone_threshold => TerrainType::Stone,
+                n if n > noise_cutoffs.sand_threshold => TerrainType::Sand,
+                n if n > noise_cutoffs.water_threshold => TerrainType::Water,
+                _ => TerrainType::Water,
             };
 
             viewport_terrain_grid[y][x] = terrain_type;
