@@ -36,15 +36,32 @@ fn main() {
     let mut renderer = PCRenderer::new();
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
-
+    let mut view_changed = true;
+    let mut tiles_to_render: Vec<Vec<[u8; 2]>> = Vec::new();
     loop {
-        // Handle user input to adjust the viewport offsets
-        handle_input(&mut renderer.window, &mut offset_x, &mut offset_y);
+        handle_input(
+            &mut renderer.window,
+            &mut offset_x,
+            &mut offset_y,
+            &mut view_changed,
+        );
 
-        // Generate tiles for the current viewport
-        let tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
+        if view_changed {
+            // Generate tiles for the current viewport
+            tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
 
-        // Render the map using dynamically generated tiles
+            // Render the map using dynamically generated tiles
+
+            view_changed = false;
+        }
+
+        if tiles_to_render.len() == 0 {
+            continue;
+        }
+
         renderer.render(&tiles_to_render, &tile_atlas);
+
+        // Sleep for a short duration to avoid busy-waiting
+        std::thread::sleep(std::time::Duration::from_millis(16));
     }
 }
