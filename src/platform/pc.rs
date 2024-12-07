@@ -10,18 +10,27 @@ use crate::{
 };
 use minifb::{Key, Window, WindowOptions};
 
-pub fn handle_input(window: &mut Window, offset_x: &mut f64, offset_y: &mut f64) {
+pub fn handle_input(
+    window: &mut Window,
+    offset_x: &mut f64,
+    offset_y: &mut f64,
+    view_changed: &mut bool,
+) {
     if window.is_key_down(Key::Up) {
         *offset_y += MOVE_SPEED as f64;
+        *view_changed = true;
     }
     if window.is_key_down(Key::Down) {
         *offset_y -= MOVE_SPEED as f64;
+        *view_changed = true;
     }
     if window.is_key_down(Key::Left) {
         *offset_x += MOVE_SPEED as f64;
+        *view_changed = true;
     }
     if window.is_key_down(Key::Right) {
         *offset_x -= MOVE_SPEED as f64;
+        *view_changed = true;
     }
 
     // Round offset values to two decimal places
