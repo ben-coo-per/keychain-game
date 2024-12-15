@@ -12,10 +12,11 @@ fn generate_terrain_grid(
     perlin: &Fbm<Perlin>,
     offset_x: f64,
     offset_y: f64,
+    current_biome: &biome::Biome,
 ) -> Vec<Vec<TerrainType>> {
     // Creates a 2D Vector of the viewport that holds the terrain type for each tile in the terrain grid
 
-    let noise_cutoffs = get_noise_cutoffs(&biome::BIOME_MOUNTAIN);
+    let noise_cutoffs = get_noise_cutoffs(&current_biome);
     let mut viewport_terrain_grid = vec![vec![TerrainType::Grass; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
     let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 1;
@@ -66,13 +67,22 @@ pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUN
 }
 
 pub struct Viewport<'a> {
-    noise_fn: &'a Fbm<Perlin>, // Procedural noise generator
+    terrain_noise_fn: &'a Fbm<Perlin>,
+    biome_noise_fn: &'a Fbm<Perlin>,
 }
 
 impl<'a> Viewport<'a> {
     /// Create a new viewport with the given dimensions and tile size
-    pub fn new(noise_fn: &'a Fbm<Perlin>) -> Self {
-        Self { noise_fn }
+    pub fn new(terrain_noise: &'a Fbm<Perlin>, biome_noise: &'a Fbm<Perlin>) -> Self {
+        Self {
+            terrain_noise_fn: terrain_noise,
+            biome_noise_fn: biome_noise,
+        }
+    }
+
+    pub fn get_current_biome(&self, offset_x: f64, offset_y: f64) -> biome::Biome {
+        let noise_value = self.biome_noise_fn.get([offset_x, offset_y]);
+        biome::get_biome_from_noise_value(noise_value)
     }
 
     /// Generate the tiles for the current viewport based on offsets
@@ -81,11 +91,13 @@ impl<'a> Viewport<'a> {
         let tiles_across = SCREEN_WIDTH / TILE_SIZE;
         let tiles_down = SCREEN_HEIGHT / TILE_SIZE;
 
+        let current_biome = self.get_current_biome(offset_x, offset_y);
         // Get terrain grid for the current viewport (offset by 1/2 tile size up and left. Extend by 1 tile size down and right)
         let terrain_grid = generate_terrain_grid(
-            self.noise_fn,
+            self.terrain_noise_fn,
             offset_x - TILE_SIZE as f64 / 2.0,
             offset_y - TILE_SIZE as f64 / 2.0,
+            &current_biome,
         );
 
         // Choose the tile type based on the terrain types of the 4 corners of the tile

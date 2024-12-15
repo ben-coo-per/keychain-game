@@ -27,13 +27,18 @@ fn main() {
     tile_atlas.register_tileset(TerrainType::Sand, 12, 0);
     tile_atlas.register_tileset(TerrainType::Water, 16, 0);
 
+    // Initialize the Biome noise generator
+    let biome_noise = Fbm::<Perlin>::new(constants::map_gen::BIOME_SEED)
+        .set_octaves(constants::map_gen::BIOME_OCTAVES)
+        .set_frequency(constants::map_gen::BIOME_FREQUENCY);
+
     // Initialize the Fbm noise generator
-    let perlin = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
-        .set_octaves(constants::map_gen::NOISE_OCTAVES)
-        .set_frequency(constants::map_gen::NOISE_FREQUENCY);
+    let terrain_noise = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
+        .set_octaves(constants::map_gen::TERRAIN_OCTAVES)
+        .set_frequency(constants::map_gen::TERRAIN_FREQUENCY);
 
     // Create the viewport
-    let viewport = Viewport::new(&perlin);
+    let viewport = Viewport::new(&terrain_noise, &biome_noise);
 
     // Create the renderer
     let mut renderer = PCRenderer::new();

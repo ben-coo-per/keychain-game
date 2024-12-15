@@ -49,3 +49,16 @@ pub const BIOME_PLAINS: Biome = Biome {
     sand_percentage: 5,
     water_percentage: 0,
 };
+
+pub fn get_biome_from_noise_value(noise_value: f64) -> Biome {
+    // Converts a noise value into a biome
+    let biome = match noise_value {
+        n if n > 0.8 => BIOME_MOUNTAIN,
+        n if n > 0.6 => BIOME_FOREST,
+        n if n > 0.4 => BIOME_PLAINS,
+        n if n > 0.2 => BIOME_DESERT,
+        _ => BIOME_DEFAULT,
+    };
+
+    biome
+}
