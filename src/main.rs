@@ -1,8 +1,10 @@
+mod character;
 mod constants;
 mod renderer;
 mod terrain;
 mod tileset;
 
+use character::Character;
 use constants::terrain::{TerrainType, TERRAIN_TYPE_COUNT};
 use constants::tiles::{TILESET_PATH, TILE_SIZE};
 use noise::{Fbm, MultiFractal, Perlin};
@@ -42,6 +44,8 @@ fn main() {
 
     // Create the renderer
     let mut renderer = PCRenderer::new();
+    let character = Character::new("assets/buck.png");
+
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
     let mut view_changed = true;
@@ -64,7 +68,7 @@ fn main() {
             continue;
         }
 
-        renderer.render(&tiles_to_render, &tile_atlas);
+        renderer.render(&tiles_to_render, &tile_atlas, &character);
 
         // Sleep for a short duration to avoid busy-waiting
         std::thread::sleep(std::time::Duration::from_millis(16));

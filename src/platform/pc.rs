@@ -1,4 +1,5 @@
 use crate::{
+    character::Character,
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
         experience::MOVE_SPEED,
@@ -60,6 +61,7 @@ impl Renderer for PCRenderer {
         &mut self,
         tiles_to_render: &Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>>,
         tile_atlas: &TileAtlas,
+        character: &Character,
     ) {
         // Create an empty buffer to store the pixel data for the window
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -94,6 +96,27 @@ impl Renderer for PCRenderer {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // Render the character at the center of the viewport
+        let character_x = (SCREEN_WIDTH - character.width) / 2;
+        let character_y = (SCREEN_HEIGHT - character.height) / 2;
+
+        for ty in 0..character.height {
+            for tx in 0..character.width {
+                let buffer_x = character_x + tx;
+                let buffer_y = character_y + ty;
+                if buffer_x < SCREEN_WIDTH && buffer_y < SCREEN_HEIGHT {
+                    let buffer_index = buffer_y * SCREEN_WIDTH + buffer_x;
+
+                    // Draw the character pixel only if it's not transparent
+                    let pixel_value = character.texture[ty * character.width + tx];
+                    let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
+                    if alpha != 0 {
+                        buffer[buffer_index] = pixel_value;
                     }
                 }
             }
