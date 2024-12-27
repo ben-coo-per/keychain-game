@@ -10,13 +10,12 @@ type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each terra
 
 fn generate_terrain_grid(
     perlin: &Fbm<Perlin>,
+    biome_noise: &Fbm<Perlin>,
     offset_x: f64,
     offset_y: f64,
-    current_biome: &biome::Biome,
 ) -> Vec<Vec<TerrainType>> {
     // Creates a 2D Vector of the viewport that holds the terrain type for each tile in the terrain grid
 
-    let noise_cutoffs = get_noise_cutoffs(&current_biome);
     let mut viewport_terrain_grid = vec![vec![TerrainType::Grass; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
     let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 1;
@@ -24,7 +23,15 @@ fn generate_terrain_grid(
 
     for x in 0..num_x_tiles {
         for y in 0..num_y_tiles {
-            let noise_value = perlin.get([(x as f64 - offset_x), (y as f64 - offset_y)]);
+            let tile_x = x as f64 - offset_x;
+            let tile_y = y as f64 - offset_y;
+
+            // Get the biome for the current tile
+            let biome_noise_value = biome_noise.get([tile_x, tile_y]);
+            let current_biome = biome::get_biome_from_noise_value(biome_noise_value);
+            let noise_cutoffs = get_noise_cutoffs(&current_biome);
+
+            let noise_value = perlin.get([tile_x, tile_y]);
 
             // Normalize the noise value to be between 0 and 1
             let normalized_noise = (noise_value + 1.0) / 2.0;
@@ -91,19 +98,16 @@ impl<'a> Viewport<'a> {
         let tiles_across = SCREEN_WIDTH / TILE_SIZE;
         let tiles_down = SCREEN_HEIGHT / TILE_SIZE;
 
-        let current_biome = self.get_current_biome(offset_x, offset_y);
         // Get terrain grid for the current viewport (offset by 1/2 tile size up and left. Extend by 1 tile size down and right)
         let terrain_grid = generate_terrain_grid(
             self.terrain_noise_fn,
+            self.biome_noise_fn,
             offset_x - TILE_SIZE as f64 / 2.0,
             offset_y - TILE_SIZE as f64 / 2.0,
-            &current_biome,
         );
 
         // Choose the tile type based on the terrain types of the 4 corners of the tile
         let mut tiles: Vec<Vec<TileCake>> = Vec::new();
-
-        // Iterate over the tiles in the viewport
         for y in 0..tiles_down {
             let mut row: Vec<TileCake> = Vec::new();
             for x in 0..tiles_across {

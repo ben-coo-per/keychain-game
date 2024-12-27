@@ -57,9 +57,6 @@ fn main() {
         if view_changed {
             // Generate tiles for the current viewport
             tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
-
-            // Render the map using dynamically generated tiles
-
             view_changed = false;
         }
 
