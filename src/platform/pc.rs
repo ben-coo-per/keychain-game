@@ -2,7 +2,7 @@ use crate::{
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
         experience::MOVE_SPEED,
-        terrain::ALL_TERRAIN_TYPES,
+        terrain::{ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT},
         tiles::TILE_SIZE,
     },
     renderer::Renderer,
@@ -56,7 +56,11 @@ impl PCRenderer {
 }
 
 impl Renderer for PCRenderer {
-    fn render(&mut self, tiles_to_render: &Vec<Vec<[u8; 2]>>, tile_atlas: &TileAtlas) {
+    fn render(
+        &mut self,
+        tiles_to_render: &Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>>,
+        tile_atlas: &TileAtlas,
+    ) {
         // Create an empty buffer to store the pixel data for the window
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 

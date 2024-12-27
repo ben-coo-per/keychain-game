@@ -1,6 +1,11 @@
 // Map generation
+pub const BIOME_SEED: u32 = 123123; // Seed for biome generation
 pub const MAP_SEED: u32 = 123123123; // Seed for procedural map generation
 
 // Terrain generation
-pub const NOISE_FREQUENCY: f64 = 0.05;
-pub const NOISE_OCTAVES: usize = 4;
+pub const TERRAIN_FREQUENCY: f64 = 0.08;
+pub const TERRAIN_OCTAVES: usize = 2;
+
+// Biome generation
+pub const BIOME_FREQUENCY: f64 = 0.001;
+pub const BIOME_OCTAVES: usize = 1;

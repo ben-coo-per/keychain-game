@@ -3,7 +3,7 @@ mod renderer;
 mod terrain;
 mod tileset;
 
-use constants::terrain::TerrainType;
+use constants::terrain::{TerrainType, TERRAIN_TYPE_COUNT};
 use constants::tiles::{TILESET_PATH, TILE_SIZE};
 use noise::{Fbm, MultiFractal, Perlin};
 use platform::pc::*;
@@ -23,21 +23,29 @@ fn main() {
     // Register tilesets
     tile_atlas.register_tileset(TerrainType::Grass, 0, 0);
     tile_atlas.register_tileset(TerrainType::Dirt, 4, 0);
+    tile_atlas.register_tileset(TerrainType::Stone, 8, 0);
+    tile_atlas.register_tileset(TerrainType::Sand, 12, 0);
+    tile_atlas.register_tileset(TerrainType::Water, 16, 0);
+
+    // Initialize the Biome noise generator
+    let biome_noise = Fbm::<Perlin>::new(constants::map_gen::BIOME_SEED)
+        .set_octaves(constants::map_gen::BIOME_OCTAVES)
+        .set_frequency(constants::map_gen::BIOME_FREQUENCY);
 
     // Initialize the Fbm noise generator
-    let perlin = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
-        .set_octaves(constants::map_gen::NOISE_OCTAVES)
-        .set_frequency(constants::map_gen::NOISE_FREQUENCY);
+    let terrain_noise = Fbm::<Perlin>::new(constants::map_gen::MAP_SEED)
+        .set_octaves(constants::map_gen::TERRAIN_OCTAVES)
+        .set_frequency(constants::map_gen::TERRAIN_FREQUENCY);
 
     // Create the viewport
-    let viewport = Viewport::new(&perlin);
+    let viewport = Viewport::new(&terrain_noise, &biome_noise);
 
     // Create the renderer
     let mut renderer = PCRenderer::new();
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
     let mut view_changed = true;
-    let mut tiles_to_render: Vec<Vec<[u8; 2]>> = Vec::new();
+    let mut tiles_to_render: Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>> = Vec::new();
     loop {
         handle_input(
             &mut renderer.window,
@@ -49,9 +57,6 @@ fn main() {
         if view_changed {
             // Generate tiles for the current viewport
             tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
-
-            // Render the map using dynamically generated tiles
-
             view_changed = false;
         }
 

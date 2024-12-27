@@ -1,22 +1,16 @@
+use crate::constants::biome;
 use crate::constants::device::{SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::constants::terrain::{TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT};
+use crate::constants::terrain::{
+    get_noise_cutoffs, TerrainType, ALL_TERRAIN_TYPES, TERRAIN_TYPE_COUNT,
+};
 use crate::constants::tiles::{get_tile_index_from_bitmap, TILE_SIZE};
 use noise::{Fbm, NoiseFn, Perlin};
 
 type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each terrain type
 
-/// Configuration for noise thresholds to determine tile types
-pub struct NoiseCutoffs {
-    dirt_threshold: f64,
-    grass_threshold: f64,
-}
-const NOISE_CUTOFFS: NoiseCutoffs = NoiseCutoffs {
-    dirt_threshold: 0.0,
-    grass_threshold: 0.5,
-};
-
 fn generate_terrain_grid(
     perlin: &Fbm<Perlin>,
+    biome_noise: &Fbm<Perlin>,
     offset_x: f64,
     offset_y: f64,
 ) -> Vec<Vec<TerrainType>> {
@@ -29,14 +23,25 @@ fn generate_terrain_grid(
 
     for x in 0..num_x_tiles {
         for y in 0..num_y_tiles {
-            let noise_value = perlin.get([(x as f64 - offset_x), (y as f64 - offset_y)]);
+            let tile_x = x as f64 - offset_x;
+            let tile_y = y as f64 - offset_y;
+
+            // Get the biome for the current tile
+            let biome_noise_value = biome_noise.get([tile_x, tile_y]);
+            let current_biome = biome::get_biome_from_noise_value(biome_noise_value);
+            let noise_cutoffs = get_noise_cutoffs(&current_biome);
+
+            let noise_value = perlin.get([tile_x, tile_y]);
 
             // Normalize the noise value to be between 0 and 1
             let normalized_noise = (noise_value + 1.0) / 2.0;
             let terrain_type = match normalized_noise {
-                n if n > NOISE_CUTOFFS.grass_threshold => TerrainType::Grass,
-                n if n > NOISE_CUTOFFS.dirt_threshold => TerrainType::Dirt,
-                _ => TerrainType::Dirt,
+                n if n > noise_cutoffs.grass_threshold => TerrainType::Grass,
+                n if n > noise_cutoffs.dirt_threshold => TerrainType::Dirt,
+                n if n > noise_cutoffs.stone_threshold => TerrainType::Stone,
+                n if n > noise_cutoffs.sand_threshold => TerrainType::Sand,
+                n if n > noise_cutoffs.water_threshold => TerrainType::Water,
+                _ => TerrainType::Water,
             };
 
             viewport_terrain_grid[y][x] = terrain_type;
@@ -69,13 +74,22 @@ pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUN
 }
 
 pub struct Viewport<'a> {
-    noise_fn: &'a Fbm<Perlin>, // Procedural noise generator
+    terrain_noise_fn: &'a Fbm<Perlin>,
+    biome_noise_fn: &'a Fbm<Perlin>,
 }
 
 impl<'a> Viewport<'a> {
     /// Create a new viewport with the given dimensions and tile size
-    pub fn new(noise_fn: &'a Fbm<Perlin>) -> Self {
-        Self { noise_fn }
+    pub fn new(terrain_noise: &'a Fbm<Perlin>, biome_noise: &'a Fbm<Perlin>) -> Self {
+        Self {
+            terrain_noise_fn: terrain_noise,
+            biome_noise_fn: biome_noise,
+        }
+    }
+
+    pub fn get_current_biome(&self, offset_x: f64, offset_y: f64) -> biome::Biome {
+        let noise_value = self.biome_noise_fn.get([offset_x, offset_y]);
+        biome::get_biome_from_noise_value(noise_value)
     }
 
     /// Generate the tiles for the current viewport based on offsets
@@ -86,15 +100,14 @@ impl<'a> Viewport<'a> {
 
         // Get terrain grid for the current viewport (offset by 1/2 tile size up and left. Extend by 1 tile size down and right)
         let terrain_grid = generate_terrain_grid(
-            self.noise_fn,
+            self.terrain_noise_fn,
+            self.biome_noise_fn,
             offset_x - TILE_SIZE as f64 / 2.0,
             offset_y - TILE_SIZE as f64 / 2.0,
         );
 
         // Choose the tile type based on the terrain types of the 4 corners of the tile
         let mut tiles: Vec<Vec<TileCake>> = Vec::new();
-
-        // Iterate over the tiles in the viewport
         for y in 0..tiles_down {
             let mut row: Vec<TileCake> = Vec::new();
             for x in 0..tiles_across {
