@@ -1,5 +1,5 @@
 use crate::{
-    character::Character,
+    character::{Character, Direction},
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
         experience::MOVE_SPEED,
@@ -16,6 +16,7 @@ pub fn handle_input(
     offset_x: &mut f64,
     offset_y: &mut f64,
     view_changed: &mut bool,
+    character: &mut Character,
 ) {
     if window.is_key_down(Key::Up) {
         *offset_y += MOVE_SPEED as f64;
@@ -28,10 +29,18 @@ pub fn handle_input(
     if window.is_key_down(Key::Left) {
         *offset_x += MOVE_SPEED as f64;
         *view_changed = true;
+        if let Direction::Left = character.direction {
+            character.direction = Direction::Right;
+            character.flip();
+        }
     }
     if window.is_key_down(Key::Right) {
         *offset_x -= MOVE_SPEED as f64;
         *view_changed = true;
+        if let Direction::Right = character.direction {
+            character.direction = Direction::Left;
+            character.flip();
+        }
     }
 
     // Round offset values to two decimal places

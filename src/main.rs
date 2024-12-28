@@ -44,7 +44,7 @@ fn main() {
 
     // Create the renderer
     let mut renderer = PCRenderer::new();
-    let character = Character::new("assets/buck.png");
+    let mut character = Character::new("assets/buck.png");
 
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
@@ -56,6 +56,7 @@ fn main() {
             &mut offset_x,
             &mut offset_y,
             &mut view_changed,
+            &mut character,
         );
 
         if view_changed {
@@ -69,8 +70,6 @@ fn main() {
         }
 
         renderer.render(&tiles_to_render, &tile_atlas, &character);
-
-        // Sleep for a short duration to avoid busy-waiting
         std::thread::sleep(std::time::Duration::from_millis(16));
     }
 }
