@@ -87,11 +87,6 @@ impl<'a> Viewport<'a> {
         }
     }
 
-    pub fn get_current_biome(&self, offset_x: f64, offset_y: f64) -> biome::Biome {
-        let noise_value = self.biome_noise_fn.get([offset_x, offset_y]);
-        biome::get_biome_from_noise_value(noise_value)
-    }
-
     /// Generate the tiles for the current viewport based on offsets
     pub fn get_tiles_to_render(&self, offset_x: f64, offset_y: f64) -> Vec<Vec<TileCake>> {
         // Calculate how many tiles fit in the viewport
