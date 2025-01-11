@@ -51,13 +51,20 @@ fn generate_terrain_grid(
     viewport_terrain_grid
 }
 
-fn get_tile_bitmap(target_terrain: &TerrainType, terrain_tiles: [&TerrainType; 4]) -> u8 {
+fn get_tile_bitmap(
+    terrain_tiles: [&TerrainType; 4],
+    remaining_terrain_layers: &[TerrainType], // Slice of "remaining terrains including current layer"
+) -> u8 {
     let mut tile_bitmap: u8 = 0b0000;
+
+    // Iterate through the tiles and check if any terrain in "remaining_terrain_layers" matches
     for (i, terrain_tile) in terrain_tiles.iter().enumerate() {
-        if **terrain_tile == *target_terrain {
-            tile_bitmap |= 1 << (3 - i);
+        // Check if the current terrain_tile matches any terrain in the remaining layers
+        if remaining_terrain_layers.iter().any(|remaining| *terrain_tile == remaining) {
+            tile_bitmap |= 1 << (3 - i); // Set the corresponding bit
         }
     }
+
     tile_bitmap
 }
 
@@ -65,8 +72,11 @@ pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUN
     // Returns a list of img indexes for the tile based on the terrain tiles of the 4 corners of the tile
     let mut tile_cake: [u8; TERRAIN_TYPE_COUNT] =
         [get_tile_index_from_bitmap(0b0000); TERRAIN_TYPE_COUNT];
-    for (i, terrain_option) in ALL_TERRAIN_TYPES.iter().enumerate() {
-        let bitmap = get_tile_bitmap(terrain_option, terrain_tiles);
+
+    for (i, _terrain_option) in ALL_TERRAIN_TYPES.iter().enumerate() {
+        // Collect "remaining layers" dynamically from the current layer (i) onwards
+        let remaining_layers = &ALL_TERRAIN_TYPES[i..];
+        let bitmap = get_tile_bitmap(terrain_tiles, remaining_layers); // Pass the remaining layers
         tile_cake[i] = get_tile_index_from_bitmap(bitmap);
     }
 
