@@ -1,6 +1,11 @@
 # Apocalypse Keychain
 
-Apocalypse Keychain is a Rust-based project aimed at creating a boundless game map that will eventually be ported to run on an embedded device with an e-ink display.
+Apocalypse Keychain is a Rust-based project aimed at creating a boundless game map that will eventually be ported to run on an embedded device with low-power display.
+
+
+https://github.com/user-attachments/assets/f527cb50-81f8-40de-b264-4598b205f4d2
+
+
 
 ## Features
 
