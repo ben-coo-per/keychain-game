@@ -1,5 +1,10 @@
 use crate::{
-    character::{Character, Direction},
+
+    characters::{
+        Direction,
+        character::{Sprite},
+        npc::NPC
+    },
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
         experience::MOVE_SPEED,
@@ -11,12 +16,13 @@ use crate::{
 };
 use minifb::{Key, Window, WindowOptions};
 
+
 pub fn handle_input(
     window: &mut Window,
     offset_x: &mut f64,
     offset_y: &mut f64,
     view_changed: &mut bool,
-    character: &mut Character,
+    character: &mut Sprite,
 ) {
     if window.is_key_down(Key::Up) {
         *offset_y += MOVE_SPEED as f64;
@@ -55,7 +61,7 @@ pub struct PCRenderer {
 impl PCRenderer {
     pub fn new() -> Self {
         let window = Window::new(
-            "Apocalypse Keychain",
+            "MORE WILD",
             SCREEN_WIDTH,
             SCREEN_HEIGHT,
             WindowOptions::default(),
@@ -63,19 +69,30 @@ impl PCRenderer {
         .expect("Failed to create window");
         Self { window }
     }
-}
 
-impl Renderer for PCRenderer {
-    fn render(
-        &mut self,
-        tiles_to_render: &Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>>,
-        tile_atlas: &TileAtlas,
-        character: &Character,
-    ) {
-        // Create an empty buffer to store the pixel data for the window
-        let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 
-        // Loop through the `TileCake` structure to render layers from bottom to top
+    fn render_sprite(sprite: &Sprite, buffer: &mut Vec<u32>, character_x: usize, character_y: usize) {
+        for ty in 0..sprite.height {
+            for tx in 0..sprite.width {
+                let buffer_x = character_x + tx;
+                let buffer_y = character_y + ty;
+                if buffer_x < SCREEN_WIDTH && buffer_y < SCREEN_HEIGHT {
+                    let buffer_index = buffer_y * SCREEN_WIDTH + buffer_x;
+
+                    // Draw the character pixel only if it's not transparent
+                    let pixel_value = sprite.texture[ty * sprite.width + tx];
+                    let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
+                    if alpha != 0 {
+                        buffer[buffer_index] = pixel_value;
+                    }
+                }
+            }
+        }
+    }
+
+    fn render_tilecake(tiles_to_render: &Vec<Vec<[u8; 5]>>, tile_atlas: &TileAtlas, buffer: &mut Vec<u32>) {
+        /// Loops through the `TileCake` structure to render layers from bottom to top
+
         for (y, row) in tiles_to_render.iter().enumerate() {
             for (x, tile_cake) in row.iter().enumerate() {
                 let tile_screen_x = x * TILE_SIZE;
@@ -109,27 +126,30 @@ impl Renderer for PCRenderer {
                 }
             }
         }
+    }
+}
 
-        // Render the character at the center of the viewport
+impl Renderer for PCRenderer {
+    fn render(
+        &mut self,
+        tiles_to_render: &Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>>,
+        tile_atlas: &TileAtlas,
+        character: &Sprite,
+        npc: &NPC
+
+    ) {
+        // Create an empty buffer to store the pixel data for the window
+        let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
+
+        Self::render_tilecake(tiles_to_render, tile_atlas, &mut buffer);
+
+        // Render the main character at the center of the viewport
         let character_x = (SCREEN_WIDTH - character.width) / 2;
         let character_y = (SCREEN_HEIGHT - character.height) / 2;
+        Self::render_sprite(character, &mut buffer, character_x, character_y);
 
-        for ty in 0..character.height {
-            for tx in 0..character.width {
-                let buffer_x = character_x + tx;
-                let buffer_y = character_y + ty;
-                if buffer_x < SCREEN_WIDTH && buffer_y < SCREEN_HEIGHT {
-                    let buffer_index = buffer_y * SCREEN_WIDTH + buffer_x;
-
-                    // Draw the character pixel only if it's not transparent
-                    let pixel_value = character.texture[ty * character.width + tx];
-                    let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
-                    if alpha != 0 {
-                        buffer[buffer_index] = pixel_value;
-                    }
-                }
-            }
-        }
+        // Render the NPC at the center of the viewport
+        Self::render_sprite(&npc.sprite, &mut buffer, 20, 20);
 
         // Update the window with the rendered buffer
         self.window

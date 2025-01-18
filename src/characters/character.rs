@@ -1,18 +1,14 @@
 use image::ImageReader;
+use crate::characters::Direction;
 
-pub enum Direction {
-    Left,
-    Right,
-}
-
-pub struct Character {
+pub struct Sprite {
     pub texture: Vec<u32>,
     pub width: usize,
     pub height: usize,
     pub direction: Direction,
 }
 
-impl Character {
+impl Sprite {
     pub fn new(path: &str) -> Self {
         let character_image = ImageReader::open(path)
             .expect("Failed to load character image")
