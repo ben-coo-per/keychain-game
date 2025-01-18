@@ -16,10 +16,10 @@ fn generate_terrain_grid(
 ) -> Vec<Vec<TerrainType>> {
     // Creates a 2D Vector of the viewport that holds the terrain type for each tile in the terrain grid
 
-    let mut viewport_terrain_grid = vec![vec![TerrainType::Grass; SCREEN_WIDTH]; SCREEN_HEIGHT];
+    let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 3; // +3 for buffer
+    let num_y_tiles = SCREEN_HEIGHT / TILE_SIZE + 3; // +3 for buffer
 
-    let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 1;
-    let num_y_tiles = SCREEN_HEIGHT / TILE_SIZE + 1;
+    let mut terrain_grid = vec![vec![TerrainType::Grass; num_x_tiles]; num_y_tiles];
 
     for x in 0..num_x_tiles {
         for y in 0..num_y_tiles {
@@ -44,11 +44,11 @@ fn generate_terrain_grid(
                 _ => TerrainType::Water,
             };
 
-            viewport_terrain_grid[y][x] = terrain_type;
+            terrain_grid[y][x] = terrain_type;
         }
     }
 
-    viewport_terrain_grid
+    terrain_grid
 }
 
 fn get_tile_bitmap(
@@ -99,19 +99,18 @@ impl<'a> Viewport<'a> {
 
     /// Generate the tiles for the current viewport based on offsets
     pub fn get_tiles_to_render(&self, offset_x: f64, offset_y: f64) -> Vec<Vec<TileCake>> {
-        // Calculate how many tiles fit in the viewport
-        let tiles_across = SCREEN_WIDTH / TILE_SIZE;
-        let tiles_down = SCREEN_HEIGHT / TILE_SIZE;
+        // Calculate how many tiles fit in the viewport, including the buffer
+        let tiles_across = SCREEN_WIDTH / TILE_SIZE + 2; // +2 for left and right buffers
+        let tiles_down = SCREEN_HEIGHT / TILE_SIZE + 2; // +2 for top and bottom buffers
 
-        // Get terrain grid for the current viewport (offset by 1/2 tile size up and left. Extend by 1 tile size down and right)
+        // Generate terrain grid with the buffer included
         let terrain_grid = generate_terrain_grid(
             self.terrain_noise_fn,
             self.biome_noise_fn,
-            offset_x - TILE_SIZE as f64 / 2.0,
-            offset_y - TILE_SIZE as f64 / 2.0,
+            offset_x,
+            offset_y,
         );
 
-        // Choose the tile type based on the terrain types of the 4 corners of the tile
         let mut tiles: Vec<Vec<TileCake>> = Vec::new();
         for y in 0..tiles_down {
             let mut row: Vec<TileCake> = Vec::new();
