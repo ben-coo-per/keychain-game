@@ -145,12 +145,18 @@ impl Renderer for PCRenderer {
         let character_x = (SCREEN_WIDTH - character.width) / 2;
         let character_y = (SCREEN_HEIGHT - character.height) / 2;
 
-        // todo: order sprites by y position
+        // Order sprites & main character rendering by y position
+        // Sort sprites and the character for rendering based on their y position
+        let mut sprites_to_render = sprite_to_render.clone();
+        sprites_to_render.push((character.clone(), character_x, character_y)); // Include the main character
 
-        Self::render_sprite(character, &mut buffer, character_x, character_y);
-        for sprite in sprite_to_render {
+        sprites_to_render.sort_by_key(|s| s.2); // Sort by y-coordinate (ascending)
+
+        // Render sprites in sorted order
+        for sprite in &sprites_to_render {
             Self::render_sprite(&sprite.0, &mut buffer, sprite.1, sprite.2);
         }
+
 
         // Update the window with the rendered buffer
         self.window

@@ -67,8 +67,6 @@ fn main() {
             tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
             sprites_to_render = npc.get_sprite_to_render(offset_x, offset_y).into_iter().collect();
             view_changed = false;
-
-            println!("x: {}, y: {}", offset_x, offset_y);
         }
 
         if tiles_to_render.len() == 0 {
