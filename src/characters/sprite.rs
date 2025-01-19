@@ -1,6 +1,7 @@
 use image::ImageReader;
 use crate::characters::Direction;
 
+#[derive(Clone, Debug)]
 pub struct Sprite {
     pub texture: Vec<u32>,
     pub width: usize,

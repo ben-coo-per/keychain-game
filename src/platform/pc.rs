@@ -2,8 +2,7 @@ use crate::{
 
     characters::{
         Direction,
-        character::{Sprite},
-        npc::NPC
+        sprite::{Sprite},
     },
     constants::{
         device::{SCREEN_HEIGHT, SCREEN_WIDTH},
@@ -15,7 +14,7 @@ use crate::{
     tileset::TileAtlas,
 };
 use minifb::{Key, Window, WindowOptions};
-
+use crate::characters::npc::SpriteToRender;
 
 pub fn handle_input(
     window: &mut Window,
@@ -99,7 +98,7 @@ impl PCRenderer {
                 let tile_screen_y = y * TILE_SIZE;
 
                 for (terrain_layer_index, tile_index) in tile_cake.iter().enumerate() {
-                    // Get the terrain type for the current layer
+                    // Get the world type for the current layer
                     let terrain_layer = &ALL_TERRAIN_TYPES[terrain_layer_index];
 
                     // Get the tile's pixel data from the tileOffset
@@ -135,8 +134,7 @@ impl Renderer for PCRenderer {
         tiles_to_render: &Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>>,
         tile_atlas: &TileAtlas,
         character: &Sprite,
-        npc: &NPC
-
+        sprite_to_render: &Vec<SpriteToRender>,
     ) {
         // Create an empty buffer to store the pixel data for the window
         let mut buffer = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -146,10 +144,13 @@ impl Renderer for PCRenderer {
         // Render the main character at the center of the viewport
         let character_x = (SCREEN_WIDTH - character.width) / 2;
         let character_y = (SCREEN_HEIGHT - character.height) / 2;
-        Self::render_sprite(character, &mut buffer, character_x, character_y);
 
-        // Render the NPC at the center of the viewport
-        Self::render_sprite(&npc.sprite, &mut buffer, 20, 20);
+        // todo: order sprites by y position
+
+        Self::render_sprite(character, &mut buffer, character_x, character_y);
+        for sprite in sprite_to_render {
+            Self::render_sprite(&sprite.0, &mut buffer, sprite.1, sprite.2);
+        }
 
         // Update the window with the rendered buffer
         self.window

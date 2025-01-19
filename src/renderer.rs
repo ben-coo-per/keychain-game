@@ -1,4 +1,5 @@
-use crate::{characters::{character::Sprite, npc::NPC}, constants::terrain::TERRAIN_TYPE_COUNT, tileset::TileAtlas};
+use crate::{characters::{sprite::Sprite}, constants::terrain::TERRAIN_TYPE_COUNT, tileset::TileAtlas};
+use crate::characters::npc::SpriteToRender;
 
 pub trait Renderer {
     fn render(
@@ -6,6 +7,6 @@ pub trait Renderer {
         tiles_to_render: &Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>>,
         tile_atlas: &TileAtlas,
         character: &Sprite,
-        npc: &NPC,
+        sprite_to_render: &Vec<SpriteToRender>,
     );
 }

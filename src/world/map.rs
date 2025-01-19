@@ -6,7 +6,7 @@ use crate::constants::terrain::{
 use crate::constants::tiles::{get_tile_index_from_bitmap, TILE_SIZE};
 use noise::{Fbm, NoiseFn, Perlin};
 
-type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each terrain type
+type TileCake = [u8; TERRAIN_TYPE_COUNT]; // array of img indexes for each world type
 
 fn generate_terrain_grid(
     perlin: &Fbm<Perlin>,
@@ -14,7 +14,7 @@ fn generate_terrain_grid(
     offset_x: f64,
     offset_y: f64,
 ) -> Vec<Vec<TerrainType>> {
-    // Creates a 2D Vector of the viewport that holds the terrain type for each tile in the terrain grid
+    // Creates a 2D Vector of the viewport that holds the world type for each tile in the world grid
 
     let num_x_tiles = SCREEN_WIDTH / TILE_SIZE + 3; // +3 for buffer
     let num_y_tiles = SCREEN_HEIGHT / TILE_SIZE + 3; // +3 for buffer
@@ -57,9 +57,9 @@ fn get_tile_bitmap(
 ) -> u8 {
     let mut tile_bitmap: u8 = 0b0000;
 
-    // Iterate through the tiles and check if any terrain in "remaining_terrain_layers" matches
+    // Iterate through the tiles and check if any world in "remaining_terrain_layers" matches
     for (i, terrain_tile) in terrain_tiles.iter().enumerate() {
-        // Check if the current terrain_tile matches any terrain in the remaining layers
+        // Check if the current terrain_tile matches any world in the remaining layers
         if remaining_terrain_layers.iter().any(|remaining| *terrain_tile == remaining) {
             tile_bitmap |= 1 << (3 - i); // Set the corresponding bit
         }
@@ -69,7 +69,7 @@ fn get_tile_bitmap(
 }
 
 pub fn get_tile_cake(terrain_tiles: [&TerrainType; 4]) -> [u8; TERRAIN_TYPE_COUNT] {
-    // Returns a list of img indexes for the tile based on the terrain tiles of the 4 corners of the tile
+    // Returns a list of img indexes for the tile based on the world tiles of the 4 corners of the tile
     let mut tile_cake: [u8; TERRAIN_TYPE_COUNT] =
         [get_tile_index_from_bitmap(0b0000); TERRAIN_TYPE_COUNT];
 
@@ -103,7 +103,7 @@ impl<'a> Viewport<'a> {
         let tiles_across = SCREEN_WIDTH / TILE_SIZE + 2; // +2 for left and right buffers
         let tiles_down = SCREEN_HEIGHT / TILE_SIZE + 2; // +2 for top and bottom buffers
 
-        // Generate terrain grid with the buffer included
+        // Generate world grid with the buffer included
         let terrain_grid = generate_terrain_grid(
             self.terrain_noise_fn,
             self.biome_noise_fn,

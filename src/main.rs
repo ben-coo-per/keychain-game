@@ -1,16 +1,16 @@
 mod constants;
 mod renderer;
-mod terrain;
+mod world;
 mod tileset;
 mod characters;
 
-use characters::character::Sprite;
+use characters::{sprite::Sprite, npc::{NPC,SpriteToRender}};
 use constants::terrain::{TerrainType, TERRAIN_TYPE_COUNT};
 use constants::tiles::{TILESET_PATH, TILE_SIZE};
 use noise::{Fbm, MultiFractal, Perlin};
 use platform::pc::*;
 use renderer::Renderer;
-use terrain::map::Viewport;
+use world::map::Viewport;
 use tileset::TileAtlas;
 
 #[cfg(target_os = "macos")]
@@ -45,12 +45,14 @@ fn main() {
     // Create the renderer
     let mut renderer = PCRenderer::new();
     let mut character = Sprite::new("assets/buck.png");
-    let mut npc = crate::characters::npc::NPC::new("assets/sprites/cactus.png");
+    let mut npc = NPC::new("assets/sprites/cactus.png", 0.0, 0.0);
 
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
     let mut view_changed = true;
     let mut tiles_to_render: Vec<Vec<[u8; TERRAIN_TYPE_COUNT]>> = Vec::new();
+    let mut sprites_to_render: Vec<SpriteToRender> = Vec::new();
+
     loop {
         handle_input(
             &mut renderer.window,
@@ -63,14 +65,17 @@ fn main() {
         if view_changed {
             // Generate tiles for the current viewport
             tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
+            sprites_to_render = npc.get_sprite_to_render(offset_x, offset_y).into_iter().collect();
             view_changed = false;
+
+            println!("x: {}, y: {}", offset_x, offset_y);
         }
 
         if tiles_to_render.len() == 0 {
             continue;
         }
 
-        renderer.render(&tiles_to_render, &tile_atlas, &character, &npc);
+        renderer.render(&tiles_to_render, &tile_atlas, &character, &sprites_to_render);
         std::thread::sleep(std::time::Duration::from_millis(16));
     }
 }

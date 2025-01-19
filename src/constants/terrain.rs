@@ -1,6 +1,6 @@
 use crate::constants::biome::Biome;
 
-/// The terrain layer ordering is as follows:
+/// The world layer ordering is as follows:
 /// Water - Lowest
 /// Sand
 /// Stone
@@ -16,10 +16,10 @@ pub enum TerrainType {
     Grass,
 }
 
-// ❗❗ Update this whenever a terrain type is added or removed‼️‼️❗❗
+// ❗❗ Update this whenever a world type is added or removed‼️‼️❗❗
 pub const TERRAIN_TYPE_COUNT: usize = 5;
 
-// Static array of all terrain types
+// Static array of all world types
 pub const ALL_TERRAIN_TYPES: [TerrainType; TERRAIN_TYPE_COUNT] = [
     TerrainType::Water,
     TerrainType::Sand,
