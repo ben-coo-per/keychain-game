@@ -151,8 +151,11 @@ impl Renderer for PCRenderer {
         let mut sprites_to_render = sprite_to_render.clone();
         sprites_to_render.push((character.clone(), character_x, character_y)); // Include the main character
 
-        sprites_to_render.sort_by_key(|s| -(s.2 as isize - (s.0.height as isize * s.0.scale as isize))); // Sort by highest point (y-coordinate - height * scale)
-
+        sprites_to_render.sort_by(|a, b| {
+            let key_a = (a.2 as isize + ((a.0.height as isize * a.0.scale as isize) * 2 / 3));
+            let key_b = (b.2 as isize + ((b.0.height as isize * b.0.scale as isize) * 2 / 3));
+            key_a.cmp(&key_b)
+        });
         // Render sprites in sorted order
         for sprite in &sprites_to_render {
             Self::render_sprite(&sprite.0, &mut buffer, sprite.1, sprite.2);
