@@ -44,8 +44,8 @@ fn main() {
 
     // Create the renderer
     let mut renderer = PCRenderer::new();
-    let mut character = Sprite::new("assets/buck.png");
-    let mut npc = NPC::new("assets/sprites/cactus.png", 0.0, 0.0);
+    let mut character = Sprite::new("assets/buck.png", 1);
+    let mut npc = NPC::new("assets/sprites/cactus.png", 3.0, 4.0, 3);
 
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;

@@ -70,24 +70,26 @@ impl PCRenderer {
     }
 
 
-    fn render_sprite(sprite: &Sprite, buffer: &mut Vec<u32>, character_x: usize, character_y: usize) {
-        for ty in 0..sprite.height {
-            for tx in 0..sprite.width {
-                let buffer_x = character_x + tx;
-                let buffer_y = character_y + ty;
-                if buffer_x < SCREEN_WIDTH && buffer_y < SCREEN_HEIGHT {
-                    let buffer_index = buffer_y * SCREEN_WIDTH + buffer_x;
-
-                    // Draw the character pixel only if it's not transparent
-                    let pixel_value = sprite.texture[ty * sprite.width + tx];
-                    let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
-                    if alpha != 0 {
-                        buffer[buffer_index] = pixel_value;
+   fn render_sprite(sprite: &Sprite, buffer: &mut Vec<u32>, character_x: usize, character_y: usize) {
+    for ty in 0..sprite.height {
+        for tx in 0..sprite.width {
+            let pixel_value = sprite.texture[ty * sprite.width + tx];
+            let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
+            if alpha != 0 {
+                for sy in 0..sprite.scale {
+                    for sx in 0..sprite.scale {
+                        let buffer_x = character_x as isize + tx as isize * sprite.scale as isize + sx as isize;
+                        let buffer_y = character_y as isize + ty as isize * sprite.scale as isize + sy as isize;
+                        if buffer_x >= 0 && buffer_y >= 0 && buffer_x < SCREEN_WIDTH as isize && buffer_y < SCREEN_HEIGHT as isize {
+                            let buffer_index = buffer_y as usize * SCREEN_WIDTH + buffer_x as usize;
+                            buffer[buffer_index] = pixel_value;
+                        }
                     }
                 }
             }
         }
     }
+}
 
     fn render_tilecake(tiles_to_render: &Vec<Vec<[u8; 5]>>, tile_atlas: &TileAtlas, buffer: &mut Vec<u32>) {
         /// Loops through the `TileCake` structure to render layers from bottom to top
@@ -145,12 +147,11 @@ impl Renderer for PCRenderer {
         let character_x = (SCREEN_WIDTH - character.width) / 2;
         let character_y = (SCREEN_HEIGHT - character.height) / 2;
 
-        // Order sprites & main character rendering by y position
-        // Sort sprites and the character for rendering based on their y position
+        // Order sprites & main character rendering by the highest point calculated by its position & scale
         let mut sprites_to_render = sprite_to_render.clone();
         sprites_to_render.push((character.clone(), character_x, character_y)); // Include the main character
 
-        sprites_to_render.sort_by_key(|s| s.2); // Sort by y-coordinate (ascending)
+        sprites_to_render.sort_by_key(|s| -(s.2 as isize - (s.0.height as isize * s.0.scale as isize))); // Sort by highest point (y-coordinate - height * scale)
 
         // Render sprites in sorted order
         for sprite in &sprites_to_render {

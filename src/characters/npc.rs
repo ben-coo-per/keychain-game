@@ -6,7 +6,7 @@ use crate::constants::tiles::TILE_SIZE;
 
 pub struct NPC {
     pub sprite: Sprite,
-    pub movement_speed: f64,
+    pub movement_speed: u8,
     pub x: f64,
     pub y: f64,
 }
@@ -14,7 +14,7 @@ pub struct NPC {
 pub type SpriteToRender = (Sprite, usize, usize);
 
 impl NPC {
-    pub fn new(path: &str, x: f64, y: f64) -> Self {
+    pub fn new(path: &str, x: f64, y: f64, scale: u8) -> Self {
         let character_image = ImageReader::open(path)
             .expect("Failed to load character image")
             .decode()
@@ -35,8 +35,9 @@ impl NPC {
                 width,
                 height,
                 direction: Direction::Right,
+                scale,
             },
-            movement_speed: 1.0,
+            movement_speed: 1,
             x,
             y,
         }
@@ -51,11 +52,11 @@ impl NPC {
         let screen_x = ((self.x as f64 + offset_x) as isize) * TILE_SIZE as isize;
         let screen_y = ((self.y as f64 + offset_y) as isize) * TILE_SIZE as isize;
 
-        // Check if the sprite is within the viewport
-        if screen_x >= 0
-            && (screen_x as usize) < SCREEN_WIDTH
-            && screen_y >= 0
-            && (screen_y as usize) < SCREEN_HEIGHT
+        // Check if the sprite is within the viewport, accounting for scale
+        if screen_x + (self.sprite.width * self.sprite.scale as usize) as isize >= 0
+            && screen_x < SCREEN_WIDTH as isize
+            && screen_y + (self.sprite.height * self.sprite.scale as usize) as isize >= 0
+            && screen_y < SCREEN_HEIGHT as isize
         {
             Some((self.sprite.clone(), screen_x as usize, screen_y as usize))
         } else {

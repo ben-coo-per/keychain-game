@@ -7,10 +7,11 @@ pub struct Sprite {
     pub width: usize,
     pub height: usize,
     pub direction: Direction,
+    pub scale: u8,
 }
 
 impl Sprite {
-    pub fn new(path: &str) -> Self {
+    pub fn new(path: &str, scale: u8 ) -> Self {
         let character_image = ImageReader::open(path)
             .expect("Failed to load character image")
             .decode()
@@ -30,6 +31,7 @@ impl Sprite {
             width,
             height,
             direction: Direction::Right,
+            scale,
         }
     }
 
