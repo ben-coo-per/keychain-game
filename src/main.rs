@@ -44,8 +44,8 @@ fn main() {
 
     // Create the renderer
     let mut renderer = PCRenderer::new();
-    let mut character = Sprite::new("assets/buck.png", 1);
-    let mut npc = NPC::new("assets/sprites/cactus.png", 3.0, 4.0, 3);
+    let mut character = Sprite::new("assets/buck.png", 2);
+    let mut npcs = [ NPC::new("assets/sprites/cactus.png", 3.0, 4.0, 3), NPC::new("assets/sprites/cactus.png", 0.0, -2.0, 2), NPC::new("assets/sprites/squirrel.png", 1.0, -4.0, 1) ];
 
     let mut offset_x = 0.0;
     let mut offset_y = 0.0;
@@ -65,7 +65,7 @@ fn main() {
         if view_changed {
             // Generate tiles for the current viewport
             tiles_to_render = viewport.get_tiles_to_render(offset_x, offset_y);
-            sprites_to_render = npc.get_sprite_to_render(offset_x, offset_y).into_iter().collect();
+            sprites_to_render = npcs.iter_mut().filter_map(|npc| npc.get_sprite_to_render(offset_x, offset_y)).collect();
             view_changed = false;
         }
 
