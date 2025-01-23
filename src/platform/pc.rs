@@ -74,6 +74,7 @@ impl PCRenderer {
     for ty in 0..sprite.height {
         for tx in 0..sprite.width {
             let pixel_value = sprite.texture[ty * sprite.width + tx];
+
             let alpha = (pixel_value >> 24) & 0xFF; // Extract the alpha value
             if alpha != 0 {
                 for sy in 0..sprite.scale {
