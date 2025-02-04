@@ -24,7 +24,15 @@ impl TileAtlas {
 
         let texture = tileset_image
             .pixels()
-            .map(|p| u32::from_le_bytes([p[0], p[1], p[2], p[3]]))
+            .map(|p| {
+                // Adjust the byte order to match rendering expectations
+                u32::from_le_bytes([
+                    p[2], // Blue
+                    p[1], // Green
+                    p[0], // Red
+                    p[3], // Alpha
+                ])
+            })
             .collect();
 
         Self {

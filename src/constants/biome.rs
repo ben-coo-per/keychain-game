@@ -1,5 +1,5 @@
 /// # Biome Types
-/// Biomes are sets of terrain percentages.
+/// Biomes are sets of world percentages.
 /// These percentages are converted into thresholds for the noise function.
 
 pub struct Biome {

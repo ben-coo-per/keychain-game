@@ -1,2 +1,2 @@
 // Playability
-pub const MOVE_SPEED: f64 = 1.0;
+pub const MOVE_SPEED: i64 = 1;

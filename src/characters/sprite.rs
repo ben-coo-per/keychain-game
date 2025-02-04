@@ -1,19 +1,17 @@
 use image::ImageReader;
+use crate::characters::Direction;
 
-pub enum Direction {
-    Left,
-    Right,
-}
-
-pub struct Character {
+#[derive(Clone, Debug)]
+pub struct Sprite {
     pub texture: Vec<u32>,
     pub width: usize,
     pub height: usize,
     pub direction: Direction,
+    pub scale: u8,
 }
 
-impl Character {
-    pub fn new(path: &str) -> Self {
+impl Sprite {
+    pub fn new(path: &str, scale: u8 ) -> Self {
         let character_image = ImageReader::open(path)
             .expect("Failed to load character image")
             .decode()
@@ -25,7 +23,15 @@ impl Character {
 
         let texture = character_image
             .pixels()
-            .map(|p| u32::from_le_bytes([p[0], p[1], p[2], p[3]]))
+            .map(|p| {
+                // Adjust the byte order to match rendering expectations
+                u32::from_le_bytes([
+                    p[2], // Blue
+                    p[1], // Green
+                    p[0], // Red
+                    p[3], // Alpha
+                ])
+            })
             .collect();
 
         Self {
@@ -33,6 +39,7 @@ impl Character {
             width,
             height,
             direction: Direction::Right,
+            scale,
         }
     }
 
